@@ -11,6 +11,7 @@ DisableProgramGroupPage=yes
 OutputBaseFilename=Disk-Diver-{#AppVersion}-windows-x64
 Compression=lzma2
 SolidCompression=yes
+SetupIconFile=..\assets\disk-diver.ico
 UninstallDisplayIcon={app}\disk-diver.exe
 WizardStyle=modern
 
@@ -18,4 +19,4 @@ WizardStyle=modern
 Source: "{#Payload}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{commonprograms}\Disk-Diver"; Filename: "{app}\disk-diver.exe"
+Name: "{commonprograms}\Disk-Diver"; Filename: "{app}\disk-diver.exe"; IconFilename: "{app}\disk-diver.exe"

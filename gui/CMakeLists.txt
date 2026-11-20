@@ -7,8 +7,16 @@ add_library(disk-diver-ui STATIC window.cpp index.cpp treemap.cpp)
 target_compile_features(disk-diver-ui PUBLIC cxx_std_17)
 target_link_libraries(disk-diver-ui PUBLIC Qt6::Widgets)
 add_executable(disk-diver WIN32 main.cpp)
+set(icon_dir "${CMAKE_CURRENT_SOURCE_DIR}/../assets")
+qt_add_resources(disk-diver "disk_diver_icons"
+    PREFIX "/icons"
+    BASE "${icon_dir}"
+    FILES "${icon_dir}/disk-diver.png")
 target_link_libraries(disk-diver PRIVATE disk-diver-ui)
 if(WIN32)
+    target_sources(disk-diver PRIVATE disk-diver.rc)
+    target_include_directories(disk-diver PRIVATE "${icon_dir}")
+    set_property(SOURCE disk-diver.rc PROPERTY OBJECT_DEPENDS "${icon_dir}/disk-diver.ico")
     target_link_libraries(disk-diver-ui PUBLIC shell32 ole32)
     if(MSVC)
         target_compile_options(disk-diver-ui PRIVATE /utf-8)

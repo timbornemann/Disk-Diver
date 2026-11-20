@@ -19,7 +19,7 @@ test -n "$version"
 arch=$(dpkg --print-architecture)
 cmake --build "$build" --config Release --parallel
 cmake --install "$build" --config Release --prefix "$prefix"
-mkdir -p "$app" "$doc" "$stage/DEBIAN" "$stage/usr/bin" "$stage/usr/share/applications"
+mkdir -p "$app" "$doc" "$stage/DEBIAN" "$stage/usr/bin"
 install -m755 "$prefix/bin/disk-diver" "$prefix/bin/disk-diver-cpp" "$app/"
 install -m644 "$prefix/bin/"{worker.py,dd_journal.py,dd_privilege.py} "$app/"
 install -m644 "$prefix/bin/"{disk-diver-engine.txt,disk-diver-ntfs-layout.txt} "$app/"
@@ -30,7 +30,9 @@ if [[ -f "$prefix/bin/disk-diver-rust" ]]; then
 fi
 install -m644 "$prefix/share/disk-diver/LICENSE" "$doc/copyright"
 install -m644 "$prefix/share/disk-diver/NOTICE" "$doc/"
-install -m644 "$packaging/disk-diver.desktop" "$stage/usr/share/applications/"
+for asset in applications/disk-diver.desktop icons/hicolor/scalable/apps/disk-diver.svg icons/hicolor/256x256/apps/disk-diver.png; do
+    install -Dm644 "$prefix/share/$asset" "$stage/usr/share/$asset"
+done
 ln -s ../lib/disk-diver/disk-diver "$stage/usr/bin/disk-diver"
 
 # Ask dpkg for the actual ABI dependencies of this distro's Qt and C++ runtime.

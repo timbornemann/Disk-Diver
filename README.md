@@ -1,4 +1,4 @@
-# Disk-Diver
+# <img src="assets/disk-diver.svg" width="40" height="40" alt=""> Disk-Diver
 
 Disk-Diver zeigt, welche Ordner und Dateien auf einem lokalen Windows- oder Linux-Laufwerk Platz belegen. Wähle ein Laufwerk oder einen Startordner und starte den Scan. Die Rechteckflächen entsprechen dem belegten Speicher. Ein Klick wählt den Eintrag auch in der Liste aus. Ein Doppelklick auf einen Ordner zoomt hinein. Über **Im Dateimanager zeigen** gelangst du zum Fund.
 
@@ -70,5 +70,7 @@ Im [Benchmarkbericht](bench/README.md) stehen Befehle, Messdaten und die plattfo
 ## Mitwirken und Lizenz
 
 Änderungen an der Größenberechnung gehören mit einem bekannten Sollwert in die Tests. Änderungen am Scanverfahren benötigen einen Release-Vergleich mit gleicher Baumstruktur, gleichem Cachezustand und gleichen Rechten. Fehlerberichte helfen mit Betriebssystem, Dateisystem, Scanmodus und einem kleinen reproduzierbaren Beispiel. Dateinamen aus privaten Scans können durch Beispieldaten ersetzt werden.
+
+Die Vorlage für das App-Symbol ist [assets/disk-diver.svg](assets/disk-diver.svg). Nach einer Änderung erzeugt `python packaging/make_icons.py` mit `resvg-py==0.5.0` die PNG- und ICO-Dateien für die Desktop-App.
 
 Disk-Diver steht unter **GPL-3.0-or-later**. Siehe [LICENSE](LICENSE) und [NOTICE](NOTICE).
