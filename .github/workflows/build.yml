@@ -123,7 +123,14 @@ jobs:
         with:
           ref: ${{ inputs.sha || github.sha }}
           persist-credentials: false
+      # The Qt action sets up its own Python. Select our build interpreter afterwards.
+      - uses: jurplel/install-qt-action@b344308e4483fc892e0d27b3cd1b173ebdd95f06 # v4.5.0
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          cache: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        id: build_python
         with:
           python-version: '3.13'
       - name: Install build dependencies
@@ -131,16 +138,13 @@ jobs:
           rustup toolchain install 1.93.0 --profile minimal
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           python -m pip install --only-binary=:all: cryptography==50.0.2
-      - uses: jurplel/install-qt-action@b344308e4483fc892e0d27b3cd1b173ebdd95f06 # v4.5.0
-        with:
-          version: '6.8.3'
-          arch: win64_msvc2022_64
-          cache: false
       - name: Configure and build
+        env:
+          BUILD_PYTHON: ${{ steps.build_python.outputs.python-path }}
         run: |
           $flags = @("-DDISK_DIVER_UPDATE_PLATFORM=windows-x64", "-DDISK_DIVER_UPDATE_REPOSITORY=$env:RELEASE_REPO", "-DDISK_DIVER_UPDATE_PUBLIC_KEY=$env:RELEASE_PUBLIC_KEY")
           if ($env:RELEASE_VERSION) { $flags += "-DDISK_DIVER_VERSION=$env:RELEASE_VERSION" }
-          cmake -S . -B build -A x64 "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR" @flags
+          cmake -S . -B build -A x64 "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR" "-DPython3_EXECUTABLE=$env:BUILD_PYTHON" @flags
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cmake --build build --config Release --parallel
       - name: Test
