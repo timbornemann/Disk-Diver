@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Disk-Diver
+GenericName=Disk Usage Analyzer
+GenericName[de]=Speicherplatzanalyse
+Exec=/usr/lib/disk-diver/disk-diver
+TryExec=/usr/lib/disk-diver/disk-diver
+Icon=drive-harddisk
+Terminal=false
+Categories=System;Filesystem;
+Keywords=disk;storage;size;treemap;
