@@ -2,7 +2,6 @@
 Type=Application
 Name=Disk-Diver
 GenericName=Disk Usage Analyzer
-GenericName[de]=Speicherplatzanalyse
 Exec=disk-diver
 TryExec=disk-diver
 Icon=disk-diver

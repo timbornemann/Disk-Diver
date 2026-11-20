@@ -89,7 +89,7 @@ void testWindow() {
         throw std::runtime_error("required button missing");
     };
     auto wait = [&] {
-        auto *start = button("Scannen");
+        auto *start = button("Scan");
         QElapsedTimer deadline;
         deadline.start();
         while (!start->isEnabled() && deadline.elapsed() < 12000) {
@@ -97,7 +97,7 @@ void testWindow() {
             QThread::msleep(5);
         }
         for (auto *label : window->findChildren<QLabel *>())
-            if (label->text().startsWith("Scan abgeschlossen.")) return;
+            if (label->text().startsWith("Scan complete.")) return;
         for (auto *label : window->findChildren<QLabel *>())
             std::cerr << label->text().toStdString() << '\n';
         throw std::runtime_error("normal scan did not finish");
@@ -110,6 +110,9 @@ void testWindow() {
         throw std::runtime_error("expected scan entry missing");
     };
     wait();
+    require(table->model()->headerData(1, Qt::Horizontal).toString() == "Allocated"
+            && table->model()->headerData(2, Qt::Horizontal).toString() == "Logical",
+            "size column labels are incorrect");
     require(table->width() >= window->width() * 4 / 10, "initial table is too narrow");
     require(table->columnViewportPosition(2) + table->columnWidth(2) <= table->viewport()->width(),
             "size columns require horizontal scrolling at the initial window size");
@@ -118,14 +121,14 @@ void testWindow() {
             "directory size in UI incorrect");
     table->activated(nested);
     findChildRow("leaf");
-    button("Zurück")->click();
+    button("Back")->click();
     findChildRow("flat");
     makeFile(dir + "/added", 17);
-    button("Scannen")->click();
+    button("Scan")->click();
     wait();
     findChildRow("added");
     require(!timing.verifiedPreview, "an outdated preview was promoted");
-    button("Scannen")->click();
+    button("Scan")->click();
     wait();
     findChildRow("added");
     require(timing.verifiedPreview, "unchanged preview was not promoted");

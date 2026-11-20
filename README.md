@@ -1,20 +1,30 @@
 # <img src="assets/disk-diver.svg" width="40" height="40" alt=""> Disk-Diver
 
-Disk-Diver zeigt, welche Ordner und Dateien auf einem lokalen Windows- oder Linux-Laufwerk Platz belegen. Wähle ein Laufwerk oder einen Startordner und starte den Scan. Die Rechteckflächen entsprechen dem belegten Speicher. Ein Klick wählt den Eintrag auch in der Liste aus. Ein Doppelklick auf einen Ordner zoomt hinein. Über **Im Dateimanager zeigen** gelangst du zum Fund.
+Disk-Diver shows how much space each folder and file uses on a local Windows or Linux drive. Choose a drive or a starting folder and select **Scan**. Each rectangle in the treemap is sized by the space the entry occupies. Click a rectangle to select the same entry in the list, double-click a folder to zoom in, or select **Show in file manager** to open its location.
 
-![Disk-Diver mit vier Beispielordnern. Videoarchiv belegt 54 von 110 MiB und nimmt die größte Fläche ein.](docs/desktop.png)
+![Disk-Diver showing four folders. The Videos folder uses 54 of 110 MiB and occupies the largest rectangle.](docs/desktop.png)
 
-Der **normale Scan** läuft mit deinen Benutzerrechten. **Erweiterte Rechte** öffnet eine Systemfreigabe für einen separaten Leseprozess. Der Dateimanager und das Hauptfenster behalten die normalen Rechte. Übersprungene oder unlesbare Einträge erscheinen in der Ansicht. Du kannst den Scan während der Auswertung abbrechen.
+By default, scans run with your user permissions. Select **Use elevated privileges** to authorize a separate process to read the drive. The main window and file manager keep their normal permissions. Disk-Diver shows which entries it skipped or could not read. You can cancel a scan while it is running.
 
-## Installieren
+## Install
 
-Unter Windows x64 den Installer `Disk-Diver-0.1.0-windows-x64.exe` ausführen und **Disk-Diver** im Startmenü öffnen. Der Installer bringt Qt und Python mit. Das Debian-Paket lässt sich mit `sudo apt install ./disk-diver_0.1.0_amd64.deb` installieren. Anschließend erscheint Disk-Diver im Anwendungsmenü.
+Open **Releases** on the project's GitHub page and choose the release marked **Latest**. Under **Assets**, download the installer for your 64-bit system. Replace `X.Y.Z` in the examples with the release version.
 
-## Bauen und starten
+| System | File | Installation |
+| --- | --- | --- |
+| Windows x64 | `Disk-Diver-X.Y.Z-windows-x64.exe` | Run the installer, then open **Disk-Diver** from the Start menu. |
+| Debian 12 or Ubuntu 24.04, amd64 | `disk-diver_X.Y.Z_amd64.deb` | In your download folder, run `sudo apt install ./disk-diver_X.Y.Z_amd64.deb`. |
+| Fedora 44, x86_64 | `disk-diver-X.Y.Z-1.x86_64.rpm` | In your download folder, run `sudo dnf install ./disk-diver-X.Y.Z-1.x86_64.rpm`. |
 
-Für den Standard-Build werden Rust mit Cargo (getestet mit 1.93), CMake ab 3.22, ein C++20-Compiler, Qt 6 ab 6.2 mit Widgets und Python ab 3.10 benötigt. Linux verwendet zusätzlich Qt DBus. Ein Release-Build ist für Zeitmessungen wichtig.
+Official release builds check for new stable versions in the background. Disk-Diver verifies the release signature, downloads the package with your user permissions, and checks its size and SHA-256 digest. Choose **Install Now** to start the update or **Later** to keep working. The **Updates** menu lets you install a downloaded update, check manually, or turn off automatic downloads. Windows opens the installer. On Linux, the system asks you to authorize installation through the package manager.
 
-**Windows** mit Visual Studio, Windows SDK und einem zum Compiler passenden Qt-SDK. Setze `QTDIR` auf das Qt-Präfix, beispielsweise den Ordner `msvc2022_64` deiner Installation.
+For a first installation or an upgrade from a version without the updater, download the installer from GitHub. Maintainers can find publishing instructions in the [release and signing guide](docs/releases.md).
+
+## Build and run
+
+The default build requires Rust with Cargo (tested with 1.93), CMake 3.22 or later, a C++20 compiler, Qt 6.2 or later with Widgets, and Python 3.10 or later. The update tests use the Python `cryptography` package. Linux also requires Qt DBus. Use a Release build for performance measurements.
+
+**Windows** requires Visual Studio, the Windows SDK, and a Qt SDK built for your compiler. Set `QTDIR` to your Qt installation prefix, for example the `msvc2022_64` directory.
 
 ```powershell
 cmake -S . -B build -A x64 "-DCMAKE_PREFIX_PATH=$env:QTDIR"
@@ -24,7 +34,7 @@ ctest --test-dir build -C Release --output-on-failure
 .\build\bin\Release\disk-diver.exe
 ```
 
-**Linux** mit Qt-Entwicklungspaketen, etwa `qt6-base-dev` unter Debian oder Ubuntu.
+**Linux** requires the Qt development packages, such as `qt6-base-dev` on Debian or Ubuntu.
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -33,28 +43,28 @@ ctest --test-dir build --output-on-failure
 ./build/bin/disk-diver
 ```
 
-Das Programm startet aus dem Build-Verzeichnis im normalen Modus. Der Vollmodus verwendet eine systemweit geschützte Installation. Unter Windows müssen Anwendung, Scanner und Python unter **Program Files** installiert sein. Unter Linux gehören diese Dateien und ihre Verzeichnisse root und der Desktop benötigt einen polkit-Authentifizierungsagenten. Die Paketskripte unter [packaging](packaging/) erstellen eine Windows-Distribution mit Qt und Python sowie ein Debian-Paket.
+When started from the build directory, Disk-Diver runs scans with normal permissions. Elevated scans require a protected, system-wide installation. On Windows, the application, scanners, and Python runtime must be installed under **Program Files**. On Linux, root must own those files and their directories, and the desktop session must have a polkit authentication agent. The project provides [packaging scripts](packaging/) for the Windows installer, Debian package, and Fedora RPM.
 
-Für ein eigenes Debian-Paket nach dem Release-Build `bash packaging/linux.sh build dist` ausführen. Dafür werden auch `dpkg-dev` und `qt6-qpa-plugins` benötigt. Der Windows-Paketbau verwendet Inno Setup 6 und das offizielle x64-Archiv der eingebetteten Python-Laufzeit. Paketversion, Download und Prüfsumme sind im [Build-Workflow](.github/workflows/build.yml) und im [Windows-Paketskript](packaging/windows.ps1) festgelegt.
+To build a Debian package, run `bash packaging/linux.sh build dist` after the Release build. Packaging also requires `dpkg-dev`, `qt6-qpa-plugins`, and `python3-cryptography`. On Fedora, configure the build with `-DDISK_DIVER_UPDATE_PLATFORM=linux-rpm-x86_64`, then run `bash packaging/rpm.sh build dist`. Windows packaging uses Inno Setup 6, the official x64 embeddable Python distribution, and Python wheels with pinned SHA-256 digests. [Build workflow](.github/workflows/build.yml) · [Windows packaging script](packaging/windows.ps1)
 
-## Größen und Aktualität
+## File sizes and scan results
 
-- **Logisch** entspricht der Länge der Datei. **Belegt** entspricht der vom Dateisystem ausgewiesenen Zuweisung. Bei einer Sparse-Datei können diese Werte stark voneinander abweichen. Die Summe umfasst die erfassten Dateien. Dateisystemverwaltung, reservierter Platz, Snapshots und gemeinsam genutzte Blöcke können die Laufwerksanzeige und den späteren Löschgewinn beeinflussen.
-- Hardlinks bleiben unter allen Namen sichtbar. Innerhalb des gewählten Scanbereichs gehören ihre summierten Bytes zum lexikografisch ersten nativen Pfad. Symlinks, Junctions und untergeordnete Mounts führen den Scanner nicht aus dem gewählten Dateisystem.
-- Der Scanner liest Metadaten. Ein Lauf auf einem aktiv beschriebenen Dateisystem erfasst ein Zeitintervall. Beim Wiederöffnen zeigt Disk-Diver den gespeicherten Stand samt Zeitpunkt. Stimmen die neu gelesenen Metadaten bytegenau überein, übernimmt die Oberfläche ihren bereits aufgebauten Index.
-- Beide Cache-Arten speichern lokal. Im normalen Modus liegt SQLite unter `%LOCALAPPDATA%\disk-diver` beziehungsweise `$XDG_CACHE_HOME/disk-diver` (standardmäßig `~/.cache/disk-diver`). Vollscans verwenden eine eigene, nach Benutzer getrennte Ablage mit Admin-/Root-Zugriffsrechten. Der aktive Cache-Ordner wird bei einem übergeordneten Scan übersprungen. **Cache leeren** gilt für den gewählten Modus. Ein abgebrochener Lauf erhält den letzten abgeschlossenen Stand.
+- **Logical** is the file's length in bytes. **Allocated** is the space the filesystem reports for the file. The two values can differ substantially for sparse files. Disk-Diver totals the files it scanned. Filesystem metadata, reserved space, snapshots, and shared blocks can affect both the drive's reported usage and how much space deleting a file frees.
+- Hard-linked files appear under every name. Within the scan area, their bytes count once, under the lexicographically first native path. The scanner stays on the selected filesystem and skips symlinks, junctions, and nested mounts when traversing folders.
+- The scanner reads metadata. On an active filesystem, the results can reflect changes made while the scan was running. When you reopen a scan, Disk-Diver shows the cached result with its timestamp. If the fresh metadata matches byte for byte, the interface reuses the existing index.
+- Both scan modes store their caches locally. The normal scan's SQLite cache lives under `%LOCALAPPDATA%\disk-diver` on Windows or `$XDG_CACHE_HOME/disk-diver` on Linux (default `~/.cache/disk-diver`). Elevated scans use a separate cache for each user, accessible with administrator or root privileges. Scans of a parent folder skip the active cache directory. **Clear cache** applies to the selected mode. Canceling a scan preserves the last completed result.
 
-## Architektur und Sprachvergleich
+## Architecture and scanner comparison
 
-Die Scanner in [C++](cpp/) und [Rust](rust/) implementieren dieselben Befehle. Windows liest gebündelte Verzeichnismetadaten, Linux verwendet verzeichnisrelative Metadatenabfragen. Beide liefern native Dateinamen, Identitäten, Größen und Fehler. Ein Index mit Eltern-IDs berechnet Ordnersummen und ordnet Hardlinks zu. Der Qt-Client bezieht denselben Datenstrom von beiden Scannern und berechnet die sichtbaren Zwischenergebnisse während des Einlesens. Das lokale Binärformat ist in [docs/protocol.md](docs/protocol.md) beschrieben.
+The C++ and Rust scanners implement the same commands. On Windows they read directory metadata in batches. On Linux they query each entry relative to its parent directory. Both report native filenames, file identities, sizes, and read errors. An index uses parent IDs to calculate folder totals and account for hard links. The Qt client consumes the same stream from either scanner and displays partial results as records arrive. [C++ scanner](cpp/) · [Rust scanner](rust/) · [Binary protocol](docs/protocol.md)
 
-Der Python-Worker koordiniert den nativen Prozess, Freigaben und Cache. Im gewöhnlichen Scan reicht er binäre Datenpakete durch und schreibt sie in einer SQLite-Transaktion. Beim vollständigen NTFS-Scan kann ein gültiges USN-Journal betroffene Verzeichnisse identifizieren. Der Worker liest deren Einträge erneut ein. Bei einer Lücke, mehrdeutigen Änderungen oder fehlender Unterstützung verwendet er den vollständigen Metadatenabgleich. Linux und frei gewählte Teilbäume werden beim Wiederöffnen direkt ab ihrer Wurzel überprüft.
+The Python worker coordinates the native scanner, privilege requests, and caching. During a normal scan it forwards binary data and writes it to SQLite in a single transaction. For a full NTFS scan, the worker can use a valid USN change journal to identify and reread affected directories. If the journal has a gap, reports ambiguous changes, or is unavailable, the worker compares the full metadata. On Linux, and for scans of a selected subtree, the next scan checks the tree again from its root.
 
-**NTFS-Journal abgeglichen** bezeichnet den Stand der von Windows protokollierten Änderungen. Für bekannte offene Schreibvorgänge hält Disk-Diver die Leseposition bis zum Schließen der Datei zurück. War eine Datei bereits vor dem ältesten erhaltenen Journaleintrag zum Schreiben geöffnet, kann ihre letzte Größenänderung erst mit einem späteren Ereignis sichtbar werden. Für einen sofortigen vollständigen Metadatenabgleich lässt sich **Scan-Cache verwenden** ausschalten. [Microsoft zur Zusammenfassung offener Schreibvorgänge](https://learn.microsoft.com/en-us/windows/win32/fileio/change-journal-records)
+The status **NTFS change journal checked.** means the scan reflects the changes Windows has recorded. For known open writes, Disk-Diver holds the journal cursor until the file closes. If a file was already open for writing before the oldest retained journal entry, its latest size change may only become visible after a later event. Turn off **Use scan cache** to force a full metadata comparison. [Microsoft's documentation on change journal records](https://learn.microsoft.com/en-us/windows/win32/fileio/change-journal-records)
 
-**Rust ist der Standard für Windows und Linux.** Im Vergleich auf NTFS und ext4 hatte Rust in allen sechs Wertungsfällen die kürzere Medianlaufzeit. Auf Testvolumes mit jeweils gut einer Million Einträgen dauerte der warme Vollscan einschließlich Indexaufbau mit Rust **0,73 Sekunden unter Windows** und **2,37 Sekunden unter Linux**. Mit `-DDISK_DIVER_ENGINE=cpp` lässt sich derselbe Desktop mit dem C++-Vergleichskern bauen. [Messdaten und Methode](bench/README.md)
+**Rust is the default scanner on Windows and Linux.** In the NTFS and ext4 comparison, Rust had the shorter median runtime in all six scored cases. On test volumes with just over a million entries each, a warm full scan with index construction took **0.73 seconds on Windows** and **2.37 seconds on Linux**. Configure with `-DDISK_DIVER_ENGINE=cpp` to build the same desktop app with the C++ scanner. [Benchmark results and methodology](bench/README.md)
 
-Die Scanner lassen sich unabhängig von Qt testen.
+You can test the scanners independently of Qt.
 
 ```sh
 cmake -S . -B build-core -DDISK_DIVER_GUI=OFF -DDISK_DIVER_ENGINE=cpp -DCMAKE_BUILD_TYPE=Release
@@ -63,14 +73,14 @@ cargo test --locked --manifest-path rust/Cargo.toml
 cargo build --release --locked --manifest-path rust/Cargo.toml
 ```
 
-Für einen JSON-Bericht rufe den jeweiligen Scanner mit `summary <Ordner>` auf. Der Windows-Befehl `layout <Laufwerkswurzel>` erprobt die volumenweite NTFS-Abfrage im Vollmodus. Im Test lieferten alle drei Verfahren dieselben 1.008.897 Einträge. Die volumenweite Abfrage brauchte beim Ausgeben der Metadaten im Median 3,65 Sekunden, die Rust-Verzeichnisabfrage 0,57 Sekunden. Deshalb bleibt der experimentelle Build-Schalter `DISK_DIVER_NTFS_LAYOUT` standardmäßig aus. [NTFS-Messreihe](bench/ntfs-layout.json)
+Run either scanner with `summary <folder>` for a JSON report. On Windows, `layout <volume-root>` exercises the experimental volume-wide NTFS query in elevated mode. All three methods returned the same 1,008,897 entries in testing. The median time to emit metadata was 3.65 seconds for the volume-wide query and 0.57 seconds for the Rust directory scanner. The experimental `DISK_DIVER_NTFS_LAYOUT` build option is therefore off by default. [NTFS measurements](bench/ntfs-layout.json)
 
-Im [Benchmarkbericht](bench/README.md) stehen Befehle, Messdaten und die plattformübergreifende Auswahlregel. Ein vollständiger Lauf, ein kleiner Teilbaum, ein aktualisierter Cache und das Einlesen derselben Metadaten lassen sich separat messen.
+The benchmark report includes the commands, measurements, and selection rule used across platforms. You can measure a full scan, a small subtree, a cache refresh, or a replay of the same metadata separately. [Benchmark report](bench/README.md)
 
-## Mitwirken und Lizenz
+## Contributing and license
 
-Änderungen an der Größenberechnung gehören mit einem bekannten Sollwert in die Tests. Änderungen am Scanverfahren benötigen einen Release-Vergleich mit gleicher Baumstruktur, gleichem Cachezustand und gleichen Rechten. Fehlerberichte helfen mit Betriebssystem, Dateisystem, Scanmodus und einem kleinen reproduzierbaren Beispiel. Dateinamen aus privaten Scans können durch Beispieldaten ersetzt werden.
+Include a test with a known expected result when changing how sizes are calculated. When changing a scan algorithm, compare Release builds with the same directory tree, cache state, and permissions. For bug reports, include the operating system, filesystem, scan mode, and a small reproducible example. You can substitute sample filenames for names from private scans.
 
-Die Vorlage für das App-Symbol ist [assets/disk-diver.svg](assets/disk-diver.svg). Nach einer Änderung erzeugt `python packaging/make_icons.py` mit `resvg-py==0.5.0` die PNG- und ICO-Dateien für die Desktop-App.
+After editing the source SVG, run `python packaging/make_icons.py` with `resvg-py==0.5.0` installed to regenerate the desktop app's PNG and ICO assets. [Source icon](assets/disk-diver.svg)
 
-Disk-Diver steht unter **GPL-3.0-or-later**. Siehe [LICENSE](LICENSE) und [NOTICE](NOTICE).
+Disk-Diver is licensed under **GPL-3.0-or-later**. [License](LICENSE) · [Notices](NOTICE)

@@ -3,11 +3,13 @@
 #include <QApplication>
 #include <QDir>
 #include <QIcon>
+#include <QLocale>
 #ifdef Q_OS_WIN
 #include <objbase.h>
 #endif
 
 int main(int argc, char **argv) {
+    QLocale::setDefault(QLocale(QLocale::English));
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("Disk-Diver");
     QCoreApplication::setOrganizationName("Disk-Diver");

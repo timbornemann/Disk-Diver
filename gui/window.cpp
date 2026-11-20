@@ -53,11 +53,16 @@ using diver::Index;
 
 namespace {
 
+QString entryCount(quint64 count) {
+    if (count == 1) return QStringLiteral("1 entry");
+    return QStringLiteral("%1 entries").arg(QLocale().toString(count));
+}
+
 class SizeTable final : public QTableView {
 public:
     void fitColumns() {
         const int width = viewport()->width();
-        const int amount = std::clamp(fontMetrics().horizontalAdvance("999,9 MiB") + 22, 76, 102);
+        const int amount = std::clamp(fontMetrics().horizontalAdvance("999.9 MiB") + 22, 76, 102);
         const bool showType = width >= 410;
         setColumnHidden(3, !showType);
         const int type = showType ? std::clamp(width / 5, 82, 124) : 0;
@@ -96,7 +101,7 @@ public:
     }
     int columnCount(const QModelIndex &parent = {}) const override { return parent.isValid() ? 0 : 4; }
     QVariant headerData(int section, Qt::Orientation o, int role) const override {
-        static const QStringList labels{tr("Name"), tr("Belegt"), tr("Logisch"), tr("Typ")};
+        static const QStringList labels{tr("Name"), tr("Allocated"), tr("Logical"), tr("Type")};
         if (o == Qt::Horizontal && role == Qt::DisplayRole) return labels.value(section);
         if (o == Qt::Horizontal && role == Qt::TextAlignmentRole && (section == 1 || section == 2))
             return int(Qt::AlignRight | Qt::AlignVCenter);
@@ -111,33 +116,33 @@ public:
         if (role == Qt::ToolTipRole) {
             if (node.alias) {
                 const auto &sizes = index_->aliasSizes(id);
-                return tr("Hardlink · Dateilänge %1, belegt %2. Beide Größen sind beim ersten Pfad in Namensreihenfolge gezählt.")
+                return tr("Hard link · Logical size %1, allocated size %2. Both sizes count toward the first path in name order.")
                         .arg(diver::formatSize(sizes.logical), sizes.allocated == diver::unknown
-                             ? tr("unbekannt") : diver::formatSize(sizes.allocated));
+                             ? tr("unknown") : diver::formatSize(sizes.allocated));
             }
-            if (node.errors) return tr("%1 Einträge konnten nicht gelesen werden.").arg(node.errors);
-            if (node.missingSizes) return tr("Für %1 Einträge ist die Belegung unbekannt.").arg(node.missingSizes);
+            if (node.errors) return tr("Could not read %1.").arg(entryCount(node.errors));
+            if (node.missingSizes) return tr("Allocated size is unknown for %1.").arg(entryCount(node.missingSizes));
             return {};
         }
         if (role != Qt::DisplayRole) return {};
         switch (cell.column()) {
         case 0: {
             const auto name = index_->name(id);
-            return name.isEmpty() && node.kind == diver::Error ? tr("(Ordnerinhalt unzugänglich)") : name;
+            return name.isEmpty() && node.kind == diver::Error ? tr("(Folder contents inaccessible)") : name;
         }
         case 1:
             if (node.kind == diver::Error || (node.missingSizes && node.kind != diver::Directory))
-                return tr("Unbekannt");
+                return tr("Unknown");
             return (node.missingSizes || node.errors ? QStringLiteral("≥ ") : QString{})
                     + diver::formatSize(node.allocated);
         case 2:
-            if (node.kind == diver::Error) return tr("Unbekannt");
+            if (node.kind == diver::Error) return tr("Unknown");
             return (node.errors ? QStringLiteral("≥ ") : QString{}) + diver::formatSize(node.logical);
         case 3:
-            if (node.alias) return tr("Hardlink");
-            if (node.kind == diver::Directory) return node.errors ? tr("Ordner · unvollständig") : tr("Ordner");
-            if (node.kind == diver::Error) return tr("Lesefehler");
-            return node.kind == diver::File ? tr("Datei") : tr("Link / Sonstiges");
+            if (node.alias) return tr("Hard link");
+            if (node.kind == diver::Directory) return node.errors ? tr("Folder (incomplete)") : tr("Folder");
+            if (node.kind == diver::Error) return tr("Read error");
+            return node.kind == diver::File ? tr("File") : tr("Link / other");
         }
         return {};
     }
@@ -181,7 +186,7 @@ public:
         auto *layout = new QVBoxLayout(central);
         auto *tools = new QHBoxLayout;
         layout->addLayout(tools);
-        roots_.setAccessibleName(tr("Laufwerk oder Startordner"));
+        roots_.setAccessibleName(tr("Drive or folder to scan"));
         roots_.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         roots_.setMinimumContentsLength(15);
         for (const auto &volume : QStorageInfo::mountedVolumes()) {
@@ -202,7 +207,7 @@ public:
         settings->addWidget(&clear_);
         settings->addStretch();
         cache_.setChecked(useCache);
-        full_.setToolTip(tr("Fordert zusätzliche Systemrechte für diesen Scan an."));
+        full_.setToolTip(tr("Request elevated privileges for this scan."));
         auto *navigation = new QHBoxLayout;
         layout->addLayout(navigation);
         navigation->addWidget(&back_);
@@ -210,10 +215,10 @@ public:
         path_.setTextInteractionFlags(Qt::TextSelectableByMouse);
         path_.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
         navigation->addWidget(&path_, 1);
-        metric_.addItems({tr("Belegter Speicher"), tr("Logische Größe")});
-        metric_.setToolTip(tr("Belegt zeigt die vom Dateisystem gemeldeten Bytes. Hardlinks zählen einmal. "
-                              "Mit anderen Dateien geteilte Blöcke (Reflinks) können mehrfach erscheinen. "
-                              "Wie viel beim Löschen frei wird, hängt von weiteren Verweisen ab."));
+        metric_.addItems({tr("Allocated space"), tr("Logical size")});
+        metric_.setToolTip(tr("Allocated space is the number of bytes the file system reports. Hard links count once. "
+                              "Files that share blocks through reflinks can count the same blocks more than once. "
+                              "The space freed by deleting a file depends on which links and shared blocks remain."));
         navigation->addWidget(&metric_);
         navigation->addWidget(&reveal_);
         auto *split = new ResultsSplitter;
@@ -246,8 +251,8 @@ public:
         foot->addWidget(&count_);
         setCentralWidget(central);
         connect(&browse_, &QPushButton::clicked, this, [this] {
-            QString folder = QFileDialog::getExistingDirectory(this, tr("Startordner wählen"),
-                                                               roots_.currentData().toString());
+            QString folder = QFileDialog::getExistingDirectory(this, tr("Choose a folder to scan"),
+                    roots_.currentData().toString(), QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
             if (!folder.isEmpty()) { setRoot(folder); start(false); }
         });
         connect(&scan_, &QPushButton::clicked, this, [this] { start(false); });
@@ -292,7 +297,7 @@ public:
             updateCount();
         });
         repaintTimer_.start();
-        status_.setText(tr("Laufwerk oder Startordner auswählen."));
+        status_.setText(tr("Select a drive or folder to scan."));
         refresh();
     }
 
@@ -332,7 +337,7 @@ private:
     }
     void updateCount() {
         const auto *active = incoming_ ? incoming_ : shown_;
-        if (active) count_.setText(tr("%1 Einträge").arg(QLocale().toString(qulonglong(active->size()))));
+        if (active) count_.setText(entryCount(active->size()));
         else count_.clear();
     }
     void select(Id id) {
@@ -461,7 +466,7 @@ private:
             CoTaskMemFree(item);
         }
         if (FAILED(hr) && !QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(path).absolutePath())))
-            status_.setText(tr("Explorer konnte den Pfad nicht anzeigen."));
+            status_.setText(tr("File Explorer could not show this path."));
 #else
         auto raw = QFile::encodeName(rootPath_);
         const auto suffix = shown_->relativeName(id);
@@ -479,7 +484,7 @@ private:
         connect(watch, &QDBusPendingCallWatcher::finished, this, [this, parentUrl, watch] {
             QDBusPendingReply<> reply = *watch;
             if (reply.isError() && !QDesktopServices::openUrl(parentUrl))
-                status_.setText(tr("Dateimanager konnte den Ordner nicht anzeigen."));
+                status_.setText(tr("The file manager could not show this folder."));
             watch->deleteLater();
         });
 #endif
@@ -502,7 +507,7 @@ private:
         if (timing_) *timing_ = {};
         auto command = pythonCommand();
         if (command.isEmpty() || !QFileInfo::exists(workerPath())) {
-            status_.setText(tr("Python 3 oder worker.py wurde nicht gefunden."));
+            status_.setText(tr("Could not find Python 3 or worker.py."));
             if (timing_) timing_->failure = status_.text();
             return;
         }
@@ -530,14 +535,14 @@ private:
         offset_ = 0;
         atHeader_ = true;
         running_ = true;
-        status_.setText(clear ? tr("Cache wird geleert …") : tr("Scan wird gestartet …"));
+        status_.setText(clear ? tr("Clearing the cache…") : tr("Starting scan…"));
         updateActions();
         worker_.start(executable, command);
     }
     void cancel() {
         if (!running_ || cancelling_) return;
         cancelling_ = true;
-        status_.setText(tr("Scan wird abgebrochen …"));
+        status_.setText(tr("Canceling scan…"));
         worker_.write("cancel\n");
         auto pid = worker_.processId();
         QTimer::singleShot(2000, this, [this, pid] {
@@ -564,7 +569,7 @@ private:
                 if (line.startsWith("STATUS Refreshing the selected tree")) journalChecked_ = false;
                 if (line.startsWith("STATUS Saved scan")) {
                     cacheMessage_ = line.section(QChar(0x00b7), 1).trimmed();
-                    if (showingPreview_) phase_.setText(tr("Gespeicherter Stand · %1").arg(cacheMessage_));
+                    if (showingPreview_) phase_.setText(tr("Saved scan · %1").arg(cacheMessage_));
                 }
             }
         }
@@ -576,7 +581,7 @@ private:
     }
     void badStream() {
         protocolError_ = true;
-        status_.setText(tr("Ungültiger Datenstrom. Scan unvollständig."));
+        status_.setText(tr("Invalid scan data. The scan is incomplete."));
         worker_.kill();
     }
     bool parseOne() {
@@ -603,7 +608,7 @@ private:
                 shown_ = incoming_;
                 folder_ = none;
                 showingPreview_ = preview_;
-                phase_.setText(preview_ ? tr("Gespeicherter Stand · %1").arg(cacheMessage_) : tr("Scan läuft"));
+                phase_.setText(preview_ ? tr("Saved scan · %1").arg(cacheMessage_) : tr("Scanning…"));
             }
             return true;
         }
@@ -632,10 +637,10 @@ private:
             shown_ = stored_.get();
             ++epoch_;
             showingPreview_ = preview_;
-            phase_.setText(preview_ ? tr("Gespeicherter Stand · %1").arg(cacheMessage_) : QString{});
+            phase_.setText(preview_ ? tr("Saved scan · %1").arg(cacheMessage_) : QString{});
             incoming_ = nullptr;
             if (folder_ == none || (*shown_)[folder_].kind != diver::Directory) folder_ = 0;
-            if (preview_) status_.setText(tr("Wird auf Änderungen geprüft …"));
+            if (preview_) status_.setText(tr("Checking for changes…"));
             else completedLive_ = true;
             refresh();
             return true;
@@ -675,22 +680,22 @@ private:
         running_ = false;
         if (!showingPreview_) phase_.clear();
         const bool incomplete = !clearing_ && (!atHeader_ || offset_ != buffer_.size() || !completedLive_);
-        if (cancelling_) status_.setText(tr("Abgebrochen · angezeigte Scan-Ergebnisse können unvollständig sein."));
-        else if (protocolError_) status_.setText(tr("Ungültiger Datenstrom · Scan unvollständig."));
+        if (cancelling_) status_.setText(tr("Scan canceled. The results shown may be incomplete."));
+        else if (protocolError_) status_.setText(tr("Invalid scan data. The scan is incomplete."));
         else if (exitCode_ != 0 || incomplete)
-            status_.setText(tr("Scan unvollständig. ") + lastMessage_);
-        else if (clearing_) status_.setText(tr("Gespeicherten Scan-Cache geleert."));
+            status_.setText(tr("Scan incomplete. ") + lastMessage_);
+        else if (clearing_) status_.setText(tr("Scan cache cleared."));
         else {
             const auto &root = (*shown_)[0];
-            QString text = root.errors || root.missingSizes ? tr("Scan abgeschlossen · Teilergebnis.") : tr("Scan abgeschlossen.");
+            QString text = root.errors || root.missingSizes ? tr("Scan finished with partial results.") : tr("Scan complete.");
             if (journalChecked_) {
-                text += tr(" NTFS-Journal abgeglichen.");
-                status_.setToolTip(tr("War eine Datei schon vor Beginn des verfügbaren Journals zum Schreiben geöffnet, "
-                                      "können Größenänderungen noch fehlen. Für einen vollständigen Metadatenabgleich "
-                                      "„Scan-Cache verwenden“ ausschalten und erneut scannen."));
+                text += tr(" NTFS change journal checked.");
+                status_.setToolTip(tr("If a file was already open for writing before the earliest available journal record, "
+                                      "the scan may miss size changes. Clear the “Use scan cache” checkbox and scan again "
+                                      "to check all file metadata."));
             }
-            if (root.errors) text += tr(" %1 Lesefehler.").arg(root.errors);
-            if (root.missingSizes) text += tr(" %1 unbekannte Belegungen.").arg(root.missingSizes);
+            if (root.errors) text += tr(" Could not read %1.").arg(entryCount(root.errors));
+            if (root.missingSizes) text += tr(" Allocated size is unknown for %1.").arg(entryCount(root.missingSizes));
             status_.setText(text);
         }
         if (timing_ && (cancelling_ || protocolError_ || exitCode_ || incomplete))
@@ -698,10 +703,10 @@ private:
         refresh();
     }
 
-    QPushButton scan_{tr("Scannen")}, stop_{tr("Abbrechen")}, clear_{tr("Cache leeren")};
-    QPushButton browse_{tr("Ordner wählen…")};
-    QPushButton back_{tr("Zurück")}, up_{tr("Nach oben")}, reveal_{tr("Im Dateimanager zeigen")};
-    QCheckBox full_{tr("Erweiterte Rechte")}, cache_{tr("Scan-Cache verwenden")};
+    QPushButton scan_{tr("Scan")}, stop_{tr("Cancel")}, clear_{tr("Clear cache")};
+    QPushButton browse_{tr("Choose folder…")};
+    QPushButton back_{tr("Back")}, up_{tr("Up")}, reveal_{tr("Show in file manager")};
+    QCheckBox full_{tr("Use elevated privileges")}, cache_{tr("Use scan cache")};
     QComboBox roots_, metric_;
     QLabel path_, phase_, status_, count_;
     Table model_;

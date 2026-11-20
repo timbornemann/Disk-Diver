@@ -7,7 +7,7 @@
 
 Treemap::Treemap(QWidget *parent) : QWidget(parent) {
     setMinimumSize(160, 150);
-    setAccessibleName(tr("Speicherbelegung als Flächenkarte"));
+    setAccessibleName(tr("Disk usage treemap"));
 }
 
 void Treemap::setItems(const diver::Index *index, const std::vector<diver::Id> &items, bool allocated,
@@ -28,7 +28,8 @@ void Treemap::setItems(const diver::Index *index, const std::vector<diver::Id> &
         }
     }
     if (tail.count)
-        tiles_.push_back({diver::none, tr("%1 weitere Einträge").arg(tail.count), tail.bytes, {}});
+        tiles_.push_back({diver::none, tail.count == 1 ? tr("1 more entry") : tr("%L1 more entries").arg(tail.count),
+                          tail.bytes, {}});
     layoutTiles();
     update();
 }
@@ -79,7 +80,7 @@ void Treemap::paintEvent(QPaintEvent *) {
     p.fillRect(rect(), palette().base());
     if (tiles_.empty()) {
         p.setPen(palette().color(QPalette::Text));
-        p.drawText(rect(), Qt::AlignCenter, tr("Keine messbare Belegung"));
+        p.drawText(rect(), Qt::AlignCenter, tr("No measurable disk usage"));
         return;
     }
     const QColor colors[] = {QColor("#215f70"), QColor("#326557"), QColor("#63517d"),
