@@ -1,0 +1,274 @@
+{
+  "schema": 1,
+  "timestamp": "2026-11-20T16:05:24.198085+00:00",
+  "os": "Windows",
+  "os_detail": "Windows-11-10.0.26300-SP0",
+  "hardware": "AMD Ryzen 9 5900XT; 32 GiB RAM",
+  "storage": "Dedicated dynamic VHDX on Samsung SSD 970 EVO Plus 1TB NVMe",
+  "filesystem": "NTFS",
+  "rounds": 5,
+  "cache_state": "warm",
+  "qualified": true,
+  "fixture": {
+    "version": 1,
+    "files": 1000000,
+    "selected_files": 2048,
+    "edit_count": 1000
+  },
+  "volume_root": true,
+  "scope": "Scanner summary and replay include indexing. Refresh includes coordinator, cache, and streaming; GUI excluded.",
+  "peak_memory": "Windows process peak working set; Linux wait4 ru_maxrss. Refresh involves a child scanner; metrics are not a combined process-tree total.",
+  "binary_sha256": {
+    "cpp": "8924a802256d85970807966ca10c511c7526669fcb3811a52efd62c885799b4e",
+    "rust": "db52c6cf2d220b13dd87e2f98a5babdd2456965e5584db536292abf321d0ed73"
+  },
+  "worker_sha256": "40e7f4ce8b2be9dcdd39f5d5d919fe460020c18f20d4295065a702f9dfa79621",
+  "capture_sha256": "ea649bc21ea4848ab6003df52021f8741b3afb4f1ec51710b3b2467003e1d0fe",
+  "summary": {
+    "full": {
+      "files": 1001006,
+      "directories": 7891,
+      "other": 0,
+      "errors": 0,
+      "logical": 56086546,
+      "allocated": 59559064,
+      "nodes": 1008897,
+      "complete": true,
+      "unknown_allocations": 0
+    },
+    "subtree": {
+      "files": 2048,
+      "directories": 18,
+      "other": 0,
+      "errors": 0,
+      "logical": 113995,
+      "allocated": 121104,
+      "nodes": 2066,
+      "complete": true,
+      "unknown_allocations": 0
+    }
+  },
+  "refresh_modes": {
+    "cpp": "traversal",
+    "rust": "traversal"
+  },
+  "cases": {
+    "full": {
+      "cpp": [
+        {
+          "wall_ms": 865.8647,
+          "peak_rss_bytes": 149811200
+        },
+        {
+          "wall_ms": 859.9474,
+          "peak_rss_bytes": 149909504
+        },
+        {
+          "wall_ms": 961.4687,
+          "peak_rss_bytes": 149819392
+        },
+        {
+          "wall_ms": 918.9256,
+          "peak_rss_bytes": 149794816
+        },
+        {
+          "wall_ms": 1120.9885,
+          "peak_rss_bytes": 149782528
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 798.5017,
+          "peak_rss_bytes": 140587008
+        },
+        {
+          "wall_ms": 725.7263,
+          "peak_rss_bytes": 140455936
+        },
+        {
+          "wall_ms": 732.2838,
+          "peak_rss_bytes": 140537856
+        },
+        {
+          "wall_ms": 703.7988,
+          "peak_rss_bytes": 140558336
+        },
+        {
+          "wall_ms": 787.3551,
+          "peak_rss_bytes": 140546048
+        }
+      ]
+    },
+    "subtree": {
+      "cpp": [
+        {
+          "wall_ms": 17.0934,
+          "peak_rss_bytes": 9195520
+        },
+        {
+          "wall_ms": 14.5198,
+          "peak_rss_bytes": 9211904
+        },
+        {
+          "wall_ms": 16.7023,
+          "peak_rss_bytes": 9211904
+        },
+        {
+          "wall_ms": 15.536,
+          "peak_rss_bytes": 9224192
+        },
+        {
+          "wall_ms": 26.1467,
+          "peak_rss_bytes": 9224192
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 15.1588,
+          "peak_rss_bytes": 9060352
+        },
+        {
+          "wall_ms": 15.0648,
+          "peak_rss_bytes": 9162752
+        },
+        {
+          "wall_ms": 15.8654,
+          "peak_rss_bytes": 9068544
+        },
+        {
+          "wall_ms": 16.8099,
+          "peak_rss_bytes": 9064448
+        },
+        {
+          "wall_ms": 18.5088,
+          "peak_rss_bytes": 9068544
+        }
+      ]
+    },
+    "refresh": {
+      "cpp": [
+        {
+          "wall_ms": 1527.367,
+          "peak_rss_bytes": 30744576
+        },
+        {
+          "wall_ms": 1959.0427,
+          "peak_rss_bytes": 30707712
+        },
+        {
+          "wall_ms": 2353.7729,
+          "peak_rss_bytes": 31019008
+        },
+        {
+          "wall_ms": 1741.5943,
+          "peak_rss_bytes": 30752768
+        },
+        {
+          "wall_ms": 1832.2977,
+          "peak_rss_bytes": 30801920
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 1112.973,
+          "peak_rss_bytes": 31932416
+        },
+        {
+          "wall_ms": 1366.5433,
+          "peak_rss_bytes": 31543296
+        },
+        {
+          "wall_ms": 1486.3718,
+          "peak_rss_bytes": 31985664
+        },
+        {
+          "wall_ms": 1378.9214,
+          "peak_rss_bytes": 31772672
+        },
+        {
+          "wall_ms": 1287.6578,
+          "peak_rss_bytes": 31911936
+        }
+      ]
+    },
+    "replay": {
+      "cpp": [
+        {
+          "wall_ms": 517.4719,
+          "peak_rss_bytes": 149712896
+        },
+        {
+          "wall_ms": 529.9861,
+          "peak_rss_bytes": 149766144
+        },
+        {
+          "wall_ms": 519.9994,
+          "peak_rss_bytes": 149774336
+        },
+        {
+          "wall_ms": 711.2136,
+          "peak_rss_bytes": 149737472
+        },
+        {
+          "wall_ms": 699.911,
+          "peak_rss_bytes": 149774336
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 237.2545,
+          "peak_rss_bytes": 141426688
+        },
+        {
+          "wall_ms": 243.7468,
+          "peak_rss_bytes": 141373440
+        },
+        {
+          "wall_ms": 224.8712,
+          "peak_rss_bytes": 141398016
+        },
+        {
+          "wall_ms": 336.5904,
+          "peak_rss_bytes": 141398016
+        },
+        {
+          "wall_ms": 308.161,
+          "peak_rss_bytes": 141406208
+        }
+      ]
+    }
+  },
+  "external": {
+    "gdu_json_export": [
+      {
+        "wall_ms": 714.8715,
+        "peak_rss_bytes": 518660096,
+        "export_bytes": 63565081
+      },
+      {
+        "wall_ms": 682.0418,
+        "peak_rss_bytes": 498323456,
+        "export_bytes": 63565081
+      },
+      {
+        "wall_ms": 697.0447,
+        "peak_rss_bytes": 472272896,
+        "export_bytes": 63565081
+      },
+      {
+        "wall_ms": 698.8667,
+        "peak_rss_bytes": 464035840,
+        "export_bytes": 63565081
+      },
+      {
+        "wall_ms": 739.3746,
+        "peak_rss_bytes": 492208128,
+        "export_bytes": 63565081
+      }
+    ]
+  },
+  "external_versions": {
+    "gdu": "Version:\t v5.39.0"
+  },
+  "authority": "Both engines and the ordinary traversal/SQLite coordinator ran with the same elevated token."
+}

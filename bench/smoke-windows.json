@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "timestamp": "2026-11-20T15:40:41.448241+00:00",
+  "os": "Windows",
+  "os_detail": "Windows-11-10.0.26300-SP0",
+  "hardware": "AMD Ryzen 9 5900XT",
+  "storage": "local system drive",
+  "filesystem": "NTFS",
+  "rounds": 5,
+  "cache_state": "warm",
+  "qualified": false,
+  "fixture": {
+    "version": 1,
+    "files": 2048,
+    "selected_files": 20,
+    "edit_count": 4
+  },
+  "volume_root": false,
+  "scope": "Scanner summary and replay include indexing. Refresh includes coordinator, cache, and streaming; GUI excluded.",
+  "peak_memory": "Windows process peak working set; Linux wait4 ru_maxrss. Refresh involves a child scanner; metrics are not a combined process-tree total.",
+  "binary_sha256": {
+    "cpp": "b4fd4638b722ac8221fddfc924fefe5dfff40c242cb83facbb5d09ed0cd52ceb",
+    "rust": "b68909325fd0d7d2fada509e0146509323dff6b55a5255a89f69b63e3a40d197"
+  },
+  "capture_sha256": "b716aa8dce27e684ea9a59a1bb4cdddfb5728b5e4e17b4d363352ba2606959dc",
+  "summary": {
+    "full": {
+      "files": 2053,
+      "directories": 24,
+      "other": 0,
+      "errors": 0,
+      "logical": 114001,
+      "allocated": 121128,
+      "nodes": 2077,
+      "complete": true,
+      "unknown_allocations": 0
+    },
+    "subtree": {
+      "files": 20,
+      "directories": 3,
+      "other": 0,
+      "errors": 0,
+      "logical": 190,
+      "allocated": 264,
+      "nodes": 23,
+      "complete": true,
+      "unknown_allocations": 0
+    }
+  },
+  "refresh_modes": {
+    "cpp": "traversal",
+    "rust": "traversal"
+  },
+  "cases": {
+    "full": {
+      "cpp": [
+        {
+          "wall_ms": 81.3529,
+          "peak_rss_bytes": 9195520
+        },
+        {
+          "wall_ms": 85.241,
+          "peak_rss_bytes": 9191424
+        },
+        {
+          "wall_ms": 76.547,
+          "peak_rss_bytes": 9285632
+        },
+        {
+          "wall_ms": 85.0925,
+          "peak_rss_bytes": 9310208
+        },
+        {
+          "wall_ms": 83.7964,
+          "peak_rss_bytes": 9199616
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 84.74,
+          "peak_rss_bytes": 9064448
+        },
+        {
+          "wall_ms": 90.9724,
+          "peak_rss_bytes": 9191424
+        },
+        {
+          "wall_ms": 84.9198,
+          "peak_rss_bytes": 9052160
+        },
+        {
+          "wall_ms": 81.4503,
+          "peak_rss_bytes": 9056256
+        },
+        {
+          "wall_ms": 92.2677,
+          "peak_rss_bytes": 9076736
+        }
+      ]
+    },
+    "subtree": {
+      "cpp": [
+        {
+          "wall_ms": 19.1145,
+          "peak_rss_bytes": 9224192
+        },
+        {
+          "wall_ms": 16.739,
+          "peak_rss_bytes": 9216000
+        },
+        {
+          "wall_ms": 23.764,
+          "peak_rss_bytes": 9207808
+        },
+        {
+          "wall_ms": 16.5718,
+          "peak_rss_bytes": 9207808
+        },
+        {
+          "wall_ms": 18.2983,
+          "peak_rss_bytes": 9211904
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 16.1307,
+          "peak_rss_bytes": 8945664
+        },
+        {
+          "wall_ms": 24.4043,
+          "peak_rss_bytes": 8949760
+        },
+        {
+          "wall_ms": 20.618,
+          "peak_rss_bytes": 8941568
+        },
+        {
+          "wall_ms": 19.1237,
+          "peak_rss_bytes": 8937472
+        },
+        {
+          "wall_ms": 15.5115,
+          "peak_rss_bytes": 8941568
+        }
+      ]
+    },
+    "refresh": {
+      "cpp": [
+        {
+          "wall_ms": 254.4107,
+          "peak_rss_bytes": 28143616
+        },
+        {
+          "wall_ms": 306.5691,
+          "peak_rss_bytes": 27996160
+        },
+        {
+          "wall_ms": 274.0197,
+          "peak_rss_bytes": 28123136
+        },
+        {
+          "wall_ms": 310.2573,
+          "peak_rss_bytes": 28028928
+        },
+        {
+          "wall_ms": 273.6388,
+          "peak_rss_bytes": 28229632
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 269.6106,
+          "peak_rss_bytes": 28389376
+        },
+        {
+          "wall_ms": 295.4922,
+          "peak_rss_bytes": 28442624
+        },
+        {
+          "wall_ms": 275.374,
+          "peak_rss_bytes": 28377088
+        },
+        {
+          "wall_ms": 306.737,
+          "peak_rss_bytes": 28495872
+        },
+        {
+          "wall_ms": 294.0786,
+          "peak_rss_bytes": 28487680
+        }
+      ]
+    },
+    "replay": {
+      "cpp": [
+        {
+          "wall_ms": 17.2669,
+          "peak_rss_bytes": 9273344
+        },
+        {
+          "wall_ms": 17.3435,
+          "peak_rss_bytes": 9269248
+        },
+        {
+          "wall_ms": 21.7274,
+          "peak_rss_bytes": 9273344
+        },
+        {
+          "wall_ms": 19.429,
+          "peak_rss_bytes": 9289728
+        },
+        {
+          "wall_ms": 17.0352,
+          "peak_rss_bytes": 9269248
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 17.5524,
+          "peak_rss_bytes": 9457664
+        },
+        {
+          "wall_ms": 19.5176,
+          "peak_rss_bytes": 8937472
+        },
+        {
+          "wall_ms": 16.7484,
+          "peak_rss_bytes": 9576448
+        },
+        {
+          "wall_ms": 16.4766,
+          "peak_rss_bytes": 9408512
+        },
+        {
+          "wall_ms": 16.0693,
+          "peak_rss_bytes": 9515008
+        }
+      ]
+    }
+  },
+  "external": {}
+}

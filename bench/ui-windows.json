@@ -1,0 +1,167 @@
+{
+  "engine": "rust",
+  "scanner_sha256": "b0dc2500212556458c739d05d7af0f57725f3a8bcfd408c203e0ecb73f48fd57",
+  "worker_sha256": "e1d2dbb4ab74dac9ce57d6c1832a93e36359fd08cd7a7fc30260d31ad2b550e8",
+  "cases": {
+    "volume-no-cache": [
+      {
+        "cache": false,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 248,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 897,
+        "peak_kib": 171428
+      },
+      {
+        "cache": false,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 245,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 876,
+        "peak_kib": 171376
+      },
+      {
+        "cache": false,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 236,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 839,
+        "peak_kib": 171712
+      },
+      {
+        "cache": false,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 246,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 842,
+        "peak_kib": 171348
+      },
+      {
+        "cache": false,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 239,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 883,
+        "peak_kib": 171424
+      }
+    ],
+    "folder-no-cache": [
+      {
+        "cache": false,
+        "entries": 2066,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 193,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 205,
+        "peak_kib": 25416
+      },
+      {
+        "cache": false,
+        "entries": 2066,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 184,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 197,
+        "peak_kib": 25584
+      },
+      {
+        "cache": false,
+        "entries": 2066,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 190,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 202,
+        "peak_kib": 25440
+      },
+      {
+        "cache": false,
+        "entries": 2066,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 188,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 202,
+        "peak_kib": 25436
+      },
+      {
+        "cache": false,
+        "entries": 2066,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 189,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 203,
+        "peak_kib": 25428
+      }
+    ],
+    "volume-cache": [
+      {
+        "cache": true,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "live",
+        "first_view_ms": 246,
+        "unknown_sizes": 0,
+        "verified_preview": false,
+        "verified_view_ms": 941,
+        "peak_kib": 171796
+      },
+      {
+        "cache": true,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "cache",
+        "first_view_ms": 257,
+        "unknown_sizes": 0,
+        "verified_preview": true,
+        "verified_view_ms": 872,
+        "peak_kib": 196044
+      },
+      {
+        "cache": true,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "cache",
+        "first_view_ms": 268,
+        "unknown_sizes": 0,
+        "verified_preview": true,
+        "verified_view_ms": 861,
+        "peak_kib": 189600
+      },
+      {
+        "cache": true,
+        "entries": 1008897,
+        "errors": 0,
+        "first_source": "cache",
+        "first_view_ms": 257,
+        "unknown_sizes": 0,
+        "verified_preview": true,
+        "verified_view_ms": 889,
+        "peak_kib": 193976
+      }
+    ]
+  }
+}

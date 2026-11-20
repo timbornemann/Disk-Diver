@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "timestamp": "2026-11-20T15:40:01.592509+00:00",
+  "os": "Linux",
+  "os_detail": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "hardware": "Docker-Desktop-WSL2-x86_64",
+  "storage": "virtual-block-device",
+  "filesystem": "overlayfs",
+  "rounds": 5,
+  "cache_state": "warm",
+  "qualified": false,
+  "fixture": {
+    "version": 1,
+    "files": 2048,
+    "selected_files": 20,
+    "edit_count": 4
+  },
+  "volume_root": false,
+  "scope": "Scanner summary and replay include indexing. Refresh includes coordinator, cache, and streaming; GUI excluded.",
+  "peak_memory": "Windows process peak working set; Linux wait4 ru_maxrss. Refresh involves a child scanner; metrics are not a combined process-tree total.",
+  "binary_sha256": {
+    "cpp": "2bbe76e7dd1cd690d4dbea47eae1901ec47dbf759952ac5e73990e052268cee8",
+    "rust": "f706a50df543e285e9207965655eeab5908cfc45c10043984b25637557125745"
+  },
+  "capture_sha256": "60097988a372ef771042218580f2122f53ea290ee1921efa07e4d05f7ae8d83b",
+  "summary": {
+    "full": {
+      "files": 2053,
+      "directories": 24,
+      "other": 0,
+      "errors": 0,
+      "logical": 114001,
+      "allocated": 8323072,
+      "nodes": 2077,
+      "complete": true,
+      "unknown_allocations": 0
+    },
+    "subtree": {
+      "files": 20,
+      "directories": 3,
+      "other": 0,
+      "errors": 0,
+      "logical": 190,
+      "allocated": 77824,
+      "nodes": 23,
+      "complete": true,
+      "unknown_allocations": 0
+    }
+  },
+  "refresh_modes": {
+    "cpp": "traversal",
+    "rust": "traversal"
+  },
+  "cases": {
+    "full": {
+      "cpp": [
+        {
+          "wall_ms": 7.8416,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 8.1655,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 8.353,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 8.2254,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 7.797,
+          "peak_rss_bytes": 18612224
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 7.1266,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 7.2639,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 7.7288,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 7.4633,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 7.4843,
+          "peak_rss_bytes": 18612224
+        }
+      ]
+    },
+    "subtree": {
+      "cpp": [
+        {
+          "wall_ms": 1.9022,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.7884,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.0597,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.904,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.0131,
+          "peak_rss_bytes": 18612224
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 1.1191,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.1798,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.2328,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.0406,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.5311,
+          "peak_rss_bytes": 18612224
+        }
+      ]
+    },
+    "refresh": {
+      "cpp": [
+        {
+          "wall_ms": 120.3952,
+          "peak_rss_bytes": 20971520
+        },
+        {
+          "wall_ms": 111.6309,
+          "peak_rss_bytes": 20971520
+        },
+        {
+          "wall_ms": 103.9692,
+          "peak_rss_bytes": 20971520
+        },
+        {
+          "wall_ms": 113.663,
+          "peak_rss_bytes": 20971520
+        },
+        {
+          "wall_ms": 100.8105,
+          "peak_rss_bytes": 20971520
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 105.5924,
+          "peak_rss_bytes": 20709376
+        },
+        {
+          "wall_ms": 113.6054,
+          "peak_rss_bytes": 21233664
+        },
+        {
+          "wall_ms": 108.1783,
+          "peak_rss_bytes": 20971520
+        },
+        {
+          "wall_ms": 116.2243,
+          "peak_rss_bytes": 20709376
+        },
+        {
+          "wall_ms": 104.735,
+          "peak_rss_bytes": 20709376
+        }
+      ]
+    },
+    "replay": {
+      "cpp": [
+        {
+          "wall_ms": 2.248,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.2112,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.1763,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.2109,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 2.8856,
+          "peak_rss_bytes": 18612224
+        }
+      ],
+      "rust": [
+        {
+          "wall_ms": 1.7842,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.695,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.5867,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.7543,
+          "peak_rss_bytes": 18612224
+        },
+        {
+          "wall_ms": 1.7925,
+          "peak_rss_bytes": 18612224
+        }
+      ]
+    }
+  },
+  "external": {}
+}

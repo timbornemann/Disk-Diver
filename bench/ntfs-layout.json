@@ -1,0 +1,134 @@
+{
+  "volume_label": "DiskDiverTest",
+  "matched_records": {
+    "directories": 7891,
+    "files": 1001006,
+    "other": 0
+  },
+  "canonical_sha256": "278e81c1f5af1d9e8549a28987d4ddd77f0a075617762da525c6507d63afab5c",
+  "warm_cache": true,
+  "sink": "DEVNULL",
+  "backup_privilege": true,
+  "order": [
+    [
+      "cpp",
+      "rust",
+      "layout"
+    ],
+    [
+      "cpp",
+      "layout",
+      "rust"
+    ],
+    [
+      "rust",
+      "cpp",
+      "layout"
+    ],
+    [
+      "rust",
+      "layout",
+      "cpp"
+    ],
+    [
+      "layout",
+      "cpp",
+      "rust"
+    ],
+    [
+      "layout",
+      "rust",
+      "cpp"
+    ]
+  ],
+  "samples": {
+    "cpp": [
+      {
+        "wall_ms": 1384.083,
+        "peak_rss_bytes": 9146368
+      },
+      {
+        "wall_ms": 1424.7184,
+        "peak_rss_bytes": 9146368
+      },
+      {
+        "wall_ms": 1300.8771,
+        "peak_rss_bytes": 9125888
+      },
+      {
+        "wall_ms": 1287.495,
+        "peak_rss_bytes": 9142272
+      },
+      {
+        "wall_ms": 1370.4047,
+        "peak_rss_bytes": 9142272
+      },
+      {
+        "wall_ms": 1288.83,
+        "peak_rss_bytes": 9134080
+      }
+    ],
+    "rust": [
+      {
+        "wall_ms": 609.3422,
+        "peak_rss_bytes": 9027584
+      },
+      {
+        "wall_ms": 568.9037,
+        "peak_rss_bytes": 9138176
+      },
+      {
+        "wall_ms": 556.5122,
+        "peak_rss_bytes": 9035776
+      },
+      {
+        "wall_ms": 573.4388,
+        "peak_rss_bytes": 9138176
+      },
+      {
+        "wall_ms": 532.0438,
+        "peak_rss_bytes": 8867840
+      },
+      {
+        "wall_ms": 579.8145,
+        "peak_rss_bytes": 8880128
+      }
+    ],
+    "layout": [
+      {
+        "wall_ms": 3948.2298,
+        "peak_rss_bytes": 224628736
+      },
+      {
+        "wall_ms": 3649.5207,
+        "peak_rss_bytes": 224677888
+      },
+      {
+        "wall_ms": 3611.0541,
+        "peak_rss_bytes": 224686080
+      },
+      {
+        "wall_ms": 3573.1628,
+        "peak_rss_bytes": 224591872
+      },
+      {
+        "wall_ms": 3645.4102,
+        "peak_rss_bytes": 224612352
+      },
+      {
+        "wall_ms": 3726.6743,
+        "peak_rss_bytes": 224612352
+      }
+    ]
+  },
+  "median_wall_ms": {
+    "cpp": 1335.6408999999999,
+    "rust": 571.17125,
+    "layout": 3647.4654499999997
+  },
+  "peak_rss_bytes": {
+    "cpp": 9146368,
+    "rust": 9138176,
+    "layout": 224686080
+  }
+}
