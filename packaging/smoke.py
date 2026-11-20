@@ -1,15 +1,29 @@
 """Exercise one fresh scan through the worker and scanner from the staged package."""
 
+import argparse
 import json
 import os
 from pathlib import Path
+import runpy
 import subprocess
 import sys
 import tempfile
 
 
 def main():
-    app = Path(sys.argv[1]).resolve(strict=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("app", type=Path)
+    parser.add_argument("--update-platform")
+    args = parser.parse_args()
+    app = args.app.resolve(strict=True)
+    if args.update_platform:
+        config = json.loads((app / "disk-diver-update.json").read_text(encoding="utf-8"))
+        if config.get("platform") != args.update_platform:
+            raise ValueError(f"build with -DDISK_DIVER_UPDATE_PLATFORM={args.update_platform}")
+        # The installer imports its adjacent updater. Import the same signature
+        # verification backend without fetching a release or starting polkit.
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey  # noqa: F401
+        runpy.run_path(str(app / "install_update.py"))
     scanner_name = "disk-diver-" + (app / "disk-diver-engine.txt").read_text().strip()
     scanner = app / (scanner_name + (".exe" if os.name == "nt" else ""))
     env = {k: v for k, v in os.environ.items() if not k.startswith("DISK_DIVER_")}

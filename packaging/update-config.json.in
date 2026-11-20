@@ -1,0 +1,6 @@
+{
+  "version": "@PROJECT_VERSION@",
+  "repository": "@DISK_DIVER_UPDATE_REPOSITORY@",
+  "public_key": "@DISK_DIVER_UPDATE_PUBLIC_KEY@",
+  "platform": "@DISK_DIVER_UPDATE_PLATFORM@"
+}

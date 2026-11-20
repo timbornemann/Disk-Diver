@@ -10,5 +10,10 @@ The bundled Python interpreter is distributed by the Python Software
 Foundation. Its license notices are in python/LICENSE.txt.
 Python sources: https://www.python.org/downloads/source/
 
+The Windows update verifier uses the cryptography, cffi and pycparser
+Python distributions. Their notices, including licenses for bundled
+components, are in python/Lib/site-packages under the respective
+distribution's .dist-info directory.
+
 The Microsoft Visual C++ runtime components are distributed under the
 Microsoft Visual Studio redistributable terms.

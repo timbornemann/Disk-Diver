@@ -34,7 +34,7 @@ $version = $versionLine.Split('=')[1]
 try {
     Run 'cmake' @('--build', $build, '--config', 'Release', '--parallel')
     Run 'cmake' @('--install', $build, '--config', 'Release', '--prefix', $prefix)
-    foreach ($file in 'disk-diver.exe', 'disk-diver-cpp.exe', 'worker.py', 'dd_journal.py', 'dd_privilege.py') {
+    foreach ($file in 'disk-diver.exe', 'disk-diver-cpp.exe', 'worker.py', 'dd_journal.py', 'dd_privilege.py', 'updater.py', 'disk-diver-update.json') {
         if (-not (Test-Path -LiteralPath (Join-Path $app $file) -PathType Leaf)) { throw "Missing $file in install stage" }
     }
     Run $deploy @('--release', '--no-translations', '--no-compiler-runtime', '--no-opengl-sw', (Join-Path $app 'disk-diver.exe'))
@@ -50,6 +50,12 @@ try {
 
     $python = Join-Path $app 'python'
     Expand-Archive -LiteralPath $zip -DestinationPath $python
+    $packages = Join-Path $python 'Lib/site-packages'
+    Run 'python' @('-m', 'pip', '--isolated', 'install', '--require-hashes', '--only-binary=:all:',
+        '--no-compile', '--platform', 'win_amd64', '--implementation', 'cp', '--python-version', '3.14',
+        '--abi', 'cp314', '--target', $packages, '-r', (Join-Path $PSScriptRoot 'windows-update-requirements.txt'))
+    Add-Content -LiteralPath (Join-Path $python 'python314._pth') -Value 'Lib/site-packages' -Encoding ascii
+    Run (Join-Path $python 'python.exe') @('-I', '-B', '-c', 'from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey; k = Ed25519PrivateKey.generate(); k.public_key().verify(k.sign(bytes(8)), bytes(8))')
     Run (Join-Path $python 'python.exe') @('-I', '-S', '-B', '-c', 'import ctypes, multiprocessing.connection, sqlite3')
     Run (Join-Path $python 'python.exe') @('-I', '-S', '-B', (Join-Path $PSScriptRoot 'smoke.py'), $app)
     Copy-Item -LiteralPath (Join-Path $prefix 'share/disk-diver') -Destination (Join-Path $app 'licenses') -Recurse
