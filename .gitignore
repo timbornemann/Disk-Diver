@@ -1,0 +1,7 @@
+/build*/
+/.cache/
+**/__pycache__/
+/rust/target/
+/aqtinstall.log
+/benchmark-results/
+/dist/
