@@ -1,4 +1,5 @@
 #include "index.h"
+#include "entry_actions.h"
 #include "stream.h"
 #include "treemap.h"
 #include "window.h"
@@ -6,6 +7,7 @@
 #include <QAbstractTableModel>
 #include <QApplication>
 #include <QAction>
+#include <QClipboard>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDesktopServices>
@@ -15,10 +17,12 @@
 #include <QFrame>
 #include <QHeaderView>
 #include <QItemSelectionModel>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMessageBox>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QProgressBar>
@@ -365,6 +369,15 @@ public:
         });
         map_.selected = [this](Id id) { select(id); };
         map_.activated = [this](Id id) { activate(id); };
+        map_.setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(&map_, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
+            entryMenu(map_.entryAt(pos), map_.mapToGlobal(pos));
+        });
+        table_.setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(&table_, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
+            const auto cell = table_.indexAt(pos);
+            if (cell.isValid()) entryMenu(model_.ids.at(cell.row()), table_.viewport()->mapToGlobal(pos));
+        });
         connect(&worker_, &QProcess::readyReadStandardOutput, this, [this] { scheduleDrain(); });
         connect(&worker_, &QProcess::readyReadStandardError, this, [this] { readMessage(false); });
         connect(&worker_, &QProcess::finished, this, [this](int code, QProcess::ExitStatus how) {
@@ -481,6 +494,7 @@ private:
     }
     void navigate(Id id) {
         if (id == none || id == folder_) return;
+        restoreFocus_.clear();
         history_.push_back(folder_);
         folder_ = id;
         selected_ = none;
@@ -488,6 +502,7 @@ private:
     }
     void goBack() {
         if (history_.empty()) return;
+        restoreFocus_.clear();
         folder_ = history_.back();
         history_.pop_back();
         selected_ = none;
@@ -591,7 +606,9 @@ private:
 
     void revealSelection() {
         if (!shown_ || folder_ == none) return;
-        const Id id = selected_ == none ? folder_ : selected_;
+        reveal(selected_ == none ? folder_ : selected_);
+    }
+    void reveal(Id id) {
 #ifdef Q_OS_WIN
         const QString path = displayPath(id);
         PIDLIST_ABSOLUTE item = nullptr;
@@ -626,6 +643,81 @@ private:
 #endif
     }
 
+    bool canChange(Id id) const {
+        return !running_ && !showingPreview_ && completedLive_ && !cancelling_ && !protocolError_
+                && exitCode_ == 0 && !(*shown_)[id].errors;
+    }
+    void entryMenu(Id id, QPoint position) {
+        if (!shown_) return;
+        const auto target = diver::entryTarget(*shown_, rootPath_, id);
+        if (target.names.isEmpty()) return;
+        select(id);
+        const auto epoch = epoch_;
+        const auto stillCurrent = [&] {
+            if (shown_ && epoch == epoch_) return true;
+            status_.setText(tr("The scan results changed. Select the entry again."));
+            return false;
+        };
+        const auto fullPath = target.path();
+        QMenu menu(this);
+        auto *open = menu.addAction(tr("Open folder in treemap"));
+        open->setEnabled(target.kind == diver::Directory);
+        auto *show = menu.addAction(tr("Show in file manager"));
+        auto *copy = menu.addAction(tr("Copy full path"));
+        copy->setEnabled(target.exactName);
+        menu.addSeparator();
+        auto *rename = menu.addAction(tr("Rename…"));
+#ifdef Q_OS_WIN
+        const QString trashLabel = tr("Move to Recycle Bin");
+        const QString trashPrompt = tr("Move this entry and its contents to the Recycle Bin?");
+#else
+        const QString trashLabel = tr("Move to Trash");
+        const QString trashPrompt = tr("Move this entry and its contents to the Trash?");
+#endif
+        auto *trash = menu.addAction(trashLabel + QStringLiteral("…"));
+        const bool writable = canChange(id) && target.mutableEntry();
+        std::optional<diver::EntryPin> pin;
+        if (writable) pin.emplace(target);
+        rename->setEnabled(writable);
+        trash->setEnabled(writable);
+        const auto action = menu.exec(position);
+        if (!action || !stillCurrent()) return;
+        if (action == open) { navigate(id); return; }
+        if (action == show) { reveal(id); return; }
+        if (action == copy) { QApplication::clipboard()->setText(fullPath); return; }
+        if (!canChange(id) || !writable) return;
+        QString error = pin->error;
+        if (error.isEmpty() && action == rename) {
+            QInputDialog dialog(this);
+            dialog.setWindowTitle(tr("Rename"));
+            dialog.setLabelText(tr("Enter a new name for\n%1").arg(fullPath));
+            for (auto *label : dialog.findChildren<QLabel *>()) label->setTextFormat(Qt::PlainText);
+            dialog.setTextValue(target.names.last());
+            dialog.setOkButtonText(tr("Rename"));
+            if (dialog.exec() != QDialog::Accepted || !stillCurrent() || !canChange(id)) return;
+            if (dialog.textValue() == target.names.last()) return;
+            error = diver::renameEntry(target, dialog.textValue());
+        } else if (error.isEmpty() && action == trash) {
+            QMessageBox confirm(QMessageBox::Question, trashLabel, fullPath, QMessageBox::Cancel, this);
+            confirm.setTextFormat(Qt::PlainText);
+            confirm.setInformativeText(trashPrompt);
+            auto *accept = confirm.addButton(trashLabel, QMessageBox::DestructiveRole);
+            confirm.setDefaultButton(QMessageBox::Cancel);
+            confirm.exec();
+            if (confirm.clickedButton() != accept || !stillCurrent() || !canChange(id)) return;
+            error = diver::trashEntry(target);
+        }
+        if (!error.isEmpty()) {
+            QMessageBox message(QMessageBox::Warning, tr("File operation failed"), fullPath + "\n\n" + error,
+                                QMessageBox::Ok, this);
+            message.setTextFormat(Qt::PlainText);
+            message.exec();
+            return;
+        }
+        setRoot(target.root);
+        start(false);
+    }
+
     void resetView() {
         ++epoch_;
         phase_.clear();
@@ -651,6 +743,11 @@ private:
         command << workerPath() << (clear ? "clear" : "scan");
         if (!clear) {
             setRoot(QDir::fromNativeSeparators(roots_.currentText()));
+            restoreFocus_.clear();
+            if (shown_ && rootPath_ == roots_.currentData().toString()) {
+                for (Id current = folder_; current != none && current != 0; current = (*shown_)[current].parent)
+                    restoreFocus_.push_back(shown_->relativeName(current));
+            }
             resetView();
             rootPath_ = roots_.currentData().toString();
             command << rootPath_;
@@ -828,12 +925,17 @@ private:
             if (journalChecked_) {
                 text += tr(" NTFS change journal checked.");
                 status_.setToolTip(tr("If a file was already open for writing before the earliest available journal record, "
-                                      "the scan may miss size changes. Clear the “Use scan cache” checkbox and scan again "
+                                      "the scan may miss size changes. Turn off “Use scan cache” in Scan options and scan again "
                                       "to check all file metadata."));
             }
             if (root.errors) text += tr(" Could not read %1.").arg(entryCount(root.errors));
             if (root.missingSizes) text += tr(" Allocated size is unknown for %1.").arg(entryCount(root.missingSizes));
             status_.setText(text);
+            for (const auto &path : restoreFocus_) {
+                const Id match = shown_->findRelative(path);
+                if (match != none && (*shown_)[match].kind == diver::Directory) { folder_ = match; break; }
+            }
+            restoreFocus_.clear();
         }
         if (timing_ && (cancelling_ || protocolError_ || exitCode_ || incomplete))
             timing_->failure = status_.text();
@@ -855,6 +957,7 @@ private:
     Index *shown_ = nullptr, *incoming_ = nullptr;
     Id folder_ = none, selected_ = none;
     std::vector<Id> history_;
+    std::vector<QByteArray> restoreFocus_;
     QString rootPath_, lastMessage_, cacheMessage_;
     QByteArray buffer_, message_;
     qsizetype offset_ = 0;

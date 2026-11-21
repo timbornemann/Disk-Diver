@@ -70,6 +70,8 @@ bool Index::append(Kind kind, quint64 parent, quint64 logical, quint64 allocated
     const Id parentId = root ? none : static_cast<Id>(parent);
     if (pendingParent_ != parentId) flush();
     Node node;
+    if (root) device_ = identity.device;
+    node.inode = identity.device == device_ ? identity.inode : 0;
     node.kind = kind;
     node.parent = parentId;
     node.nameOffset = static_cast<quint32>(names_.size());

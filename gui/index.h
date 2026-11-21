@@ -25,6 +25,7 @@ struct Node {
     quint32 childCount = 0;
     quint64 logical = 0;
     quint64 allocated = 0;
+    quint64 inode = 0;
     quint32 errors = 0;
     quint32 missingSizes = 0;
     Kind kind = Other;
@@ -71,11 +72,13 @@ public:
     const AliasSizes &aliasSizes(Id id) const { return aliases_.at(id); }
     const Node &operator[](Id id) const { return nodes_[id]; }
     size_t size() const { return nodes_.size(); }
+    quint64 device() const { return device_; }
 
 private:
     void addToAncestors(Id id, const Node &from, bool subtract);
     QByteArray rawName(Id id) const;
     std::vector<Node> nodes_;
+    quint64 device_ = 0;
     QByteArray names_;
     std::unordered_map<Identity, Id, IdentityHash> owners_;
     std::unordered_map<Id, AliasSizes> aliases_;
