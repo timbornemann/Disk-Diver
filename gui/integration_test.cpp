@@ -2,12 +2,14 @@
 #include "stream.h"
 #include "window.h"
 #include <QApplication>
+#include <QComboBox>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLabel>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPushButton>
+#include <QSplitter>
 #include <QTableView>
 #include <QTemporaryDir>
 #include <QThread>
@@ -113,9 +115,27 @@ void testWindow() {
     require(table->model()->headerData(1, Qt::Horizontal).toString() == "Allocated"
             && table->model()->headerData(2, Qt::Horizontal).toString() == "Logical",
             "size column labels are incorrect");
-    require(table->width() >= window->width() * 4 / 10, "initial table is too narrow");
+    auto *split = window->findChild<QSplitter *>();
+    require(split && split->count() == 2, "results splitter missing");
+    const auto initial = split->sizes();
+    const int available = initial[0] + initial[1];
+    require(initial[0] >= available * 78 / 100 && initial[0] <= available * 82 / 100,
+            "treemap should start with about 80 percent of the results area");
+    require(!table->isColumnHidden(1) && table->isColumnHidden(2), "compact table should show allocated size");
+    QComboBox *metric = nullptr;
+    for (auto *combo : window->findChildren<QComboBox *>())
+        if (combo->findText("Logical size") >= 0) metric = combo;
+    require(metric, "size metric control missing");
+    metric->setCurrentIndex(1);
+    require(table->isColumnHidden(1) && !table->isColumnHidden(2), "compact table did not follow the selected metric");
     require(table->columnViewportPosition(2) + table->columnWidth(2) <= table->viewport()->width(),
-            "size columns require horizontal scrolling at the initial window size");
+            "active size column requires horizontal scrolling");
+    split->setSizes({available / 3, 2 * available / 3});
+    QApplication::processEvents();
+    require(!table->isColumnHidden(1) && !table->isColumnHidden(2) && !table->isColumnHidden(3),
+            "widening the table should reveal all columns");
+    metric->setCurrentIndex(0);
+    split->setSizes(initial);
     auto nested = findChildRow("nested");
     require(table->model()->index(nested.row(), 2).data().toString() == "23 B",
             "directory size in UI incorrect");

@@ -60,16 +60,23 @@ QString entryCount(quint64 count) {
 
 class SizeTable final : public QTableView {
 public:
+    void setSizeMetric(bool allocated) {
+        allocated_ = allocated;
+        fitColumns();
+    }
     void fitColumns() {
         const int width = viewport()->width();
-        const int amount = std::clamp(fontMetrics().horizontalAdvance("999.9 MiB") + 22, 76, 102);
-        const bool showType = width >= 410;
+        const int amount = fontMetrics().horizontalAdvance(QStringLiteral("≥ 999.9 MiB")) + 16;
+        const int minimumName = fontMetrics().horizontalAdvance(QStringLiteral("Downloads")) + 24;
+        const bool showBoth = width >= minimumName + 2 * amount;
+        const int type = std::clamp(width / 5, 82, 124);
+        const bool showType = width >= minimumName + 2 * amount + type;
+        setColumnHidden(1, !showBoth && !allocated_);
+        setColumnHidden(2, !showBoth && allocated_);
         setColumnHidden(3, !showType);
-        const int type = showType ? std::clamp(width / 5, 82, 124) : 0;
-        const int name = std::max(54, width - 2 * amount - type);
-        setColumnWidth(0, name);
-        setColumnWidth(1, amount);
-        setColumnWidth(2, amount);
+        setColumnWidth(0, std::max(40, width - (showBoth ? 2 : 1) * amount - (showType ? type : 0)));
+        if (!isColumnHidden(1)) setColumnWidth(1, amount);
+        if (!isColumnHidden(2)) setColumnWidth(2, amount);
         if (showType) setColumnWidth(3, type);
     }
 protected:
@@ -77,6 +84,8 @@ protected:
         QTableView::resizeEvent(event);
         fitColumns();
     }
+private:
+    bool allocated_ = true;
 };
 
 class ResultsSplitter final : public QSplitter {
@@ -85,7 +94,7 @@ protected:
         QSplitter::showEvent(event);
         if (initial_) {
             const int available = width() - handleWidth();
-            const int mapWidth = available * 56 / 100;
+            const int mapWidth = available * 4 / 5;
             setSizes({mapWidth, available - mapWidth});
             initial_ = false;
         }
@@ -122,6 +131,7 @@ public:
             }
             if (node.errors) return tr("Could not read %1.").arg(entryCount(node.errors));
             if (node.missingSizes) return tr("Allocated size is unknown for %1.").arg(entryCount(node.missingSizes));
+            if (cell.column() == 0) return QStringLiteral("<p>%1</p>").arg(index_->name(id).toHtmlEscaped());
             return {};
         }
         if (role != Qt::DisplayRole) return {};
@@ -233,7 +243,7 @@ public:
         table_.setSelectionMode(QAbstractItemView::SingleSelection);
         table_.setEditTriggers(QAbstractItemView::NoEditTriggers);
         table_.verticalHeader()->hide();
-        table_.setMinimumWidth(240);
+        table_.setMinimumWidth(table_.fontMetrics().horizontalAdvance(QStringLiteral("≥ 999.9 MiB")) + 80);
         table_.horizontalHeader()->setMinimumSectionSize(40);
         table_.horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
         table_.horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -429,7 +439,7 @@ private:
         renderedAllocated_ = allocated;
         const auto previous = selected_;
         model_.replace(shown_, std::move(rows));
-        table_.fitColumns();
+        table_.setSizeMetric(allocated);
         map_.setItems(shown_, model_.ids, allocated, remainder);
         if (previous != none && shown_ && previous < shown_->size() && (*shown_)[previous].parent == folder_) {
             if (model_.ids.empty()) selected_ = previous;
