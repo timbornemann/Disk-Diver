@@ -5,17 +5,20 @@
 
 #include <QAbstractTableModel>
 #include <QApplication>
-#include <QCheckBox>
+#include <QAction>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFileDialog>
+#include <QFrame>
 #include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
+#include <QMenu>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QProgressBar>
@@ -25,8 +28,10 @@
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QStorageInfo>
+#include <QStyle>
 #include <QTableView>
 #include <QTimer>
+#include <QToolButton>
 #include <QThreadPool>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -194,11 +199,29 @@ public:
         resize(1040, 680);
         auto *central = new QWidget;
         auto *layout = new QVBoxLayout(central);
-        auto *tools = new QHBoxLayout;
-        layout->addLayout(tools);
+        auto addControlRow = [layout] {
+            auto *row = new QWidget;
+            // Let the window shrink to its results area. The row switches to its
+            // compact controls as soon as it receives the narrower geometry.
+            row->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+            auto *line = new QHBoxLayout(row);
+            line->setContentsMargins(0, 0, 0, 0);
+            layout->addWidget(row);
+            return line;
+        };
+        auto *tools = addControlRow();
+        sourceLabel_.setBuddy(&roots_);
+        tools->addWidget(&sourceLabel_);
+        roots_.setObjectName("scanSource");
         roots_.setAccessibleName(tr("Drive or folder to scan"));
-        roots_.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        roots_.setMinimumContentsLength(15);
+        roots_.setEditable(true);
+        roots_.setInsertPolicy(QComboBox::NoInsert);
+        roots_.setCompleter(nullptr);
+        roots_.setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+        roots_.setMinimumContentsLength(9);
+        roots_.lineEdit()->setClearButtonEnabled(true);
+        roots_.lineEdit()->setPlaceholderText(tr("Drive or folder to scan"));
+        roots_.setToolTip(tr("Select a drive or enter a folder path (Ctrl+L)."));
         for (const auto &volume : QStorageInfo::mountedVolumes()) {
             if (!volume.isValid() || !volume.isReady() || volume.bytesTotal() <= 0) continue;
             QString root = QDir::cleanPath(volume.rootPath());
@@ -207,30 +230,85 @@ public:
         }
         if (roots_.count() == 0) roots_.addItem(QDir::rootPath(), QDir::rootPath());
         tools->addWidget(&roots_, 1);
+        auto *focusSource = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_L), this);
+        connect(focusSource, &QShortcut::activated, this, [this] {
+            if (!roots_.isEnabled()) return;
+            roots_.setFocus(Qt::ShortcutFocusReason);
+            roots_.lineEdit()->selectAll();
+        });
+        browse_.setText(tr("Choose folder…"));
+        browse_.setShortcut(QKeySequence::Open);
+        browse_.setToolTip(tr("Choose a folder to scan (Ctrl+O)."));
         tools->addWidget(&browse_);
+        auto primaryFont = scan_.font();
+        primaryFont.setBold(true);
+        scan_.setFont(primaryFont);
+        scan_.setDefault(true);
+        scan_.setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Return));
+        scan_.setToolTip(tr("Scan this drive or folder (Ctrl+Enter)."));
         tools->addWidget(&scan_);
+        stop_.setShortcut(QKeySequence(Qt::Key_Escape));
+        stop_.setToolTip(tr("Cancel the current operation (Esc)."));
         tools->addWidget(&stop_);
-        auto *settings = new QHBoxLayout;
-        layout->addLayout(settings);
-        settings->addWidget(&full_);
-        settings->addWidget(&cache_);
-        settings->addWidget(&clear_);
-        settings->addStretch();
+        auto *settings = new QMenu(&options_);
+        settings->setToolTipsVisible(true);
+        settings->addAction(&full_);
+        settings->addAction(&cache_);
+        settings->addSeparator();
+        settings->addAction(&clear_);
+        full_.setCheckable(true);
+        cache_.setCheckable(true);
         cache_.setChecked(useCache);
         full_.setToolTip(tr("Request elevated privileges for this scan."));
-        auto *navigation = new QHBoxLayout;
-        layout->addLayout(navigation);
+        cache_.setToolTip(tr("Save scan results locally and check them for changes on the next scan."));
+        clear_.setToolTip(tr("Clear saved results for the selected privilege level."));
+        options_.setText(tr("Scan options"));
+        options_.setToolTip(tr("Change scan privileges or manage the scan cache."));
+        options_.setPopupMode(QToolButton::InstantPopup);
+        options_.setMenu(settings);
+        tools->addWidget(&options_);
+        // The source grows on wider monitors; keep its actions beside the field.
+        tools->addStretch(0);
+        auto *divider = new QFrame;
+        divider->setFrameShape(QFrame::HLine);
+        divider->setFrameShadow(QFrame::Sunken);
+        layout->addWidget(divider);
+        auto *navigation = addControlRow();
+        back_.setText(tr("Back"));
+        back_.setToolTip(tr("Go back to the previous folder."));
+        up_.setText(tr("Up"));
+        up_.setShortcut(QKeySequence(Qt::ALT | Qt::Key_Up));
+        up_.setToolTip(tr("Go to the parent folder (Alt+Up)."));
         navigation->addWidget(&back_);
         navigation->addWidget(&up_);
-        path_.setTextInteractionFlags(Qt::TextSelectableByMouse);
-        path_.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+        path_.setReadOnly(true);
+        path_.setFrame(false);
+        path_.setStyleSheet(QStringLiteral("background: transparent;"));
+        path_.setAccessibleName(tr("Current folder"));
+        path_.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         navigation->addWidget(&path_, 1);
+        navigation->addWidget(&folderSize_);
+        navigation->addStretch(0);
+        auto *separator = new QFrame;
+        separator->setFrameShape(QFrame::VLine);
+        separator->setFrameShadow(QFrame::Sunken);
+        navigation->addWidget(separator);
         metric_.addItems({tr("Allocated space"), tr("Logical size")});
+        metric_.setAccessibleName(tr("Size metric"));
         metric_.setToolTip(tr("Allocated space is the number of bytes the file system reports. Hard links count once. "
                               "Files that share blocks through reflinks can count the same blocks more than once. "
                               "The space freed by deleting a file depends on which links and shared blocks remain."));
         navigation->addWidget(&metric_);
+        reveal_.setText(tr("Show in file manager"));
+        reveal_.setToolTip(tr("Show the selected item or current folder in the file manager."));
         navigation->addWidget(&reveal_);
+        for (QToolButton *button : {&browse_, &back_, &up_, &reveal_, &options_}) {
+            button->setAutoRaise(true);
+            button->setFocusPolicy(Qt::StrongFocus);
+            button->setAccessibleName(button->text());
+        }
+        updateControlIcons();
+        updateControlLayout();
         auto *split = new ResultsSplitter;
         split->addWidget(&map_);
         split->addWidget(&table_);
@@ -254,26 +332,28 @@ public:
         layout->addLayout(foot);
         phase_.setTextFormat(Qt::PlainText);
         status_.setTextFormat(Qt::PlainText);
-        path_.setTextFormat(Qt::PlainText);
+        phase_.setWordWrap(true);
         status_.setWordWrap(true);
         foot->addWidget(&phase_);
         foot->addWidget(&status_, 1);
         foot->addWidget(&count_);
         setCentralWidget(central);
-        connect(&browse_, &QPushButton::clicked, this, [this] {
+        connect(&roots_, &QComboBox::editTextChanged, this, [this] { updateActions(); });
+        connect(roots_.lineEdit(), &QLineEdit::returnPressed, this, [this] { start(false); });
+        connect(&browse_, &QToolButton::clicked, this, [this] {
             QString folder = QFileDialog::getExistingDirectory(this, tr("Choose a folder to scan"),
-                    roots_.currentData().toString(), QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
+                    roots_.currentText(), QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
             if (!folder.isEmpty()) { setRoot(folder); start(false); }
         });
         connect(&scan_, &QPushButton::clicked, this, [this] { start(false); });
         connect(&stop_, &QPushButton::clicked, this, [this] { cancel(); });
-        connect(&clear_, &QPushButton::clicked, this, [this] { start(true); });
-        connect(&up_, &QPushButton::clicked, this, [this] { navigate((*shown_)[folder_].parent); });
-        connect(&back_, &QPushButton::clicked, this, [this] { goBack(); });
+        connect(&clear_, &QAction::triggered, this, [this] { start(true); });
+        connect(&up_, &QToolButton::clicked, this, [this] { navigate((*shown_)[folder_].parent); });
+        connect(&back_, &QToolButton::clicked, this, [this] { goBack(); });
         auto *backKey = new QShortcut(QKeySequence::Back, this);
         connect(backKey, &QShortcut::activated, this, [this] { goBack(); });
         connect(&metric_, &QComboBox::currentIndexChanged, this, [this] { refresh(); });
-        connect(&reveal_, &QPushButton::clicked, this, [this] { revealSelection(); });
+        connect(&reveal_, &QToolButton::clicked, this, [this] { revealSelection(); });
         connect(&table_, &QTableView::activated, this, [this](const QModelIndex &cell) {
             activate(model_.ids[cell.row()]);
         });
@@ -319,10 +399,22 @@ public:
             i = roots_.count() - 1;
         }
         roots_.setCurrentIndex(i);
+        roots_.setEditText(roots_.itemText(i));
     }
     void scanPath(const QString &path) { setRoot(path); start(false); }
 
 protected:
+    void resizeEvent(QResizeEvent *event) override {
+        QMainWindow::resizeEvent(event);
+        updateControlLayout();
+    }
+    void changeEvent(QEvent *event) override {
+        QMainWindow::changeEvent(event);
+        if (centralWidget() && (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange)) {
+            updateControlIcons();
+            updateControlLayout();
+        }
+    }
     void closeEvent(QCloseEvent *event) override {
         if (worker_.state() != QProcess::NotRunning) {
             cancel();
@@ -333,14 +425,36 @@ protected:
     }
 
 private:
+    void updateControlIcons() {
+        browse_.setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
+        scan_.setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        back_.setIcon(style()->standardIcon(QStyle::SP_ArrowBack));
+        up_.setIcon(style()->standardIcon(QStyle::SP_ArrowUp));
+        reveal_.setIcon(style()->standardIcon(QStyle::SP_DirLinkIcon));
+    }
+    void updateControlLayout() {
+        const int em = fontMetrics().horizontalAdvance(QLatin1Char('M'));
+        const bool compact = width() < 68 * em;
+        sourceLabel_.setVisible(!compact);
+        roots_.setMaximumWidth(62 * em);
+        path_.setMaximumWidth(std::min(80 * em, path_.fontMetrics().horizontalAdvance(path_.text()) + em));
+        for (QToolButton *button : {&browse_, &back_, &up_, &reveal_}) {
+            button->setToolButtonStyle(compact ? Qt::ToolButtonIconOnly : Qt::ToolButtonTextBesideIcon);
+        }
+    }
     void updateActions() {
-        scan_.setEnabled(!running_);
+        const bool focusCancel = running_ && !scan_.isHidden() &&
+                                 (!focusWidget() || scan_.hasFocus() || roots_.hasFocus() || browse_.hasFocus());
+        const bool focusScan = !running_ && stop_.hasFocus();
+        scan_.setEnabled(!running_ && !roots_.currentText().isEmpty());
+        scan_.setVisible(!running_);
+        stop_.setVisible(running_);
         stop_.setEnabled(running_ && !cancelling_);
-        full_.setEnabled(!running_);
-        cache_.setEnabled(!running_);
-        clear_.setEnabled(!running_);
+        options_.setEnabled(!running_);
         roots_.setEnabled(!running_);
         browse_.setEnabled(!running_);
+        if (focusCancel) stop_.setFocus(Qt::OtherFocusReason);
+        if (focusScan) scan_.setFocus(Qt::OtherFocusReason);
         back_.setEnabled(!history_.empty());
         up_.setEnabled(shown_ && folder_ != none && (*shown_)[folder_].parent != none);
         reveal_.setEnabled(shown_ && folder_ != none);
@@ -430,12 +544,19 @@ private:
         } else renderRows(shown_ ? shown_->children(folder_, allocated) : std::vector<Id>{}, allocated);
         if (shown_ && folder_ != none) {
             const auto &n = (*shown_)[folder_];
-            QString label = displayPath(folder_) + "  ·  ";
-            if (n.errors || (allocated && n.missingSizes)) label += QStringLiteral("≥ ");
-            label += diver::formatSize(allocated ? n.allocated : n.logical);
-            path_.setText(label);
-            path_.setToolTip(label);
-        } else path_.clear();
+            const auto folderPath = displayPath(folder_);
+            if (path_.text() != folderPath) {
+                path_.setText(folderPath);
+                path_.setToolTip(folderPath);
+                updateControlLayout();
+            }
+            const auto prefix = n.errors || (allocated && n.missingSizes) ? QStringLiteral("≥ ") : QString{};
+            folderSize_.setText(prefix + diver::formatSize(allocated ? n.allocated : n.logical));
+        } else {
+            path_.clear();
+            path_.setToolTip({});
+            folderSize_.clear();
+        }
         updateActions();
         updateCount();
     }
@@ -517,7 +638,7 @@ private:
         next_.reset();
     }
     void start(bool clear) {
-        if (running_) return;
+        if (running_ || (!clear && roots_.currentText().isEmpty())) return;
         scanClock_.start();
         if (timing_) *timing_ = {};
         auto command = pythonCommand();
@@ -529,6 +650,7 @@ private:
         const auto executable = command.takeFirst();
         command << workerPath() << (clear ? "clear" : "scan");
         if (!clear) {
+            setRoot(QDir::fromNativeSeparators(roots_.currentText()));
             resetView();
             rootPath_ = roots_.currentData().toString();
             command << rootPath_;
@@ -718,12 +840,12 @@ private:
         refresh();
     }
 
-    QPushButton scan_{tr("Scan")}, stop_{tr("Cancel")}, clear_{tr("Clear cache")};
-    QPushButton browse_{tr("Choose folder…")};
-    QPushButton back_{tr("Back")}, up_{tr("Up")}, reveal_{tr("Show in file manager")};
-    QCheckBox full_{tr("Use elevated privileges")}, cache_{tr("Use scan cache")};
+    QPushButton scan_{tr("Scan")}, stop_{tr("Cancel")};
+    QToolButton browse_, back_, up_, reveal_, options_;
+    QAction full_{tr("Use elevated privileges")}, cache_{tr("Use scan cache")}, clear_{tr("Clear cache")};
     QComboBox roots_, metric_;
-    QLabel path_, phase_, status_, count_;
+    QLabel sourceLabel_{tr("Scan &location")}, folderSize_, phase_, status_, count_;
+    QLineEdit path_;
     Table model_;
     SizeTable table_;
     Treemap map_;

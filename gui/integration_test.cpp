@@ -9,12 +9,16 @@
 #include <QLabel>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QPushButton>
 #include <QSet>
 #include <QSplitter>
+#include <QKeyEvent>
+#include <QLineEdit>
+#include <QMenu>
+#include <QAbstractButton>
 #include <QTableView>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QToolButton>
 #include <iostream>
 #include <stdexcept>
 
@@ -87,8 +91,8 @@ void testWindow() {
     auto window = createWindow(dir, true, &timing);
     window->show();
     auto *table = window->findChild<QTableView *>();
-    auto button = [&](const QString &label) -> QPushButton * {
-        for (auto *widget : window->findChildren<QPushButton *>())
+    auto button = [&](const QString &label) -> QAbstractButton * {
+        for (auto *widget : window->findChildren<QAbstractButton *>())
             if (widget->text() == label) return widget;
         throw std::runtime_error("required button missing");
     };
@@ -113,7 +117,12 @@ void testWindow() {
         }
         throw std::runtime_error("expected scan entry missing");
     };
+    // The command-line scan is already running before the window is shown.
+    require(button("Cancel")->isVisible() && !button("Scan")->isVisible(),
+            "cancel must replace the scan action during an operation");
     wait();
+    require(!button("Cancel")->isVisible() && button("Scan")->isVisible(),
+            "idle scan controls did not return");
     require(table->model()->headerData(1, Qt::Horizontal).toString() == "Allocated"
             && table->model()->headerData(2, Qt::Horizontal).toString() == "Logical",
             "size column labels are incorrect");
@@ -155,6 +164,37 @@ void testWindow() {
     require(nestedHits == 1 && table->model()->rowCount() == 2,
             "selecting a nested tile should clear the previous table row and keep the current folder");
     metric->setCurrentIndex(0);
+    auto *source = window->findChild<QComboBox *>("scanSource");
+    auto *browse = qobject_cast<QToolButton *>(button("Choose folder…"));
+    auto *options = qobject_cast<QToolButton *>(button("Scan options"));
+    require(source && source->isEditable() && source->lineEdit()->isClearButtonEnabled()
+            && browse && options && options->menu(), "source or scan options missing");
+    const auto settings = options->menu()->actions();
+    require(settings.size() == 4 && settings[0]->text() == "Use elevated privileges" && settings[0]->isCheckable()
+            && settings[1]->text() == "Use scan cache" && settings[1]->isChecked()
+            && settings[3]->text() == "Clear cache", "scan options menu changed");
+    window->resize(480, 540);
+    QApplication::processEvents();
+    require(window->width() == 480 && browse->toolButtonStyle() == Qt::ToolButtonIconOnly
+            && !browse->accessibleName().isEmpty() && options->isVisible() && button("Scan")->isVisible()
+            && source->width() >= 80, "source and scan actions do not fit the compact window");
+    window->resize(3072, 680);
+    QApplication::processEvents();
+    require(browse->toolButtonStyle() == Qt::ToolButtonTextBesideIcon && source->width() < window->width() / 2
+            && browse->x() <= source->geometry().right() + 24, "source controls spread apart on an ultrawide display");
+    window->resize(1040, 680);
+    auto tap = [](QWidget *target, Qt::Key key, Qt::KeyboardModifiers modifiers = {}) {
+        QKeyEvent press(QEvent::KeyPress, key, modifiers);
+        QApplication::sendEvent(target, &press);
+        QKeyEvent release(QEvent::KeyRelease, key, modifiers);
+        QApplication::sendEvent(target, &release);
+    };
+    window->activateWindow();
+    table->setFocus();
+    QApplication::processEvents();
+    tap(table, Qt::Key_L, Qt::ControlModifier);
+    require(source->hasFocus() && source->lineEdit()->selectedText() == source->currentText(),
+            "Ctrl+L must focus and select the scan location");
     auto nested = findChildRow("nested");
     require(table->model()->index(nested.row(), 2).data().toString() == "23 B",
             "directory size in UI incorrect");
@@ -167,10 +207,18 @@ void testWindow() {
     wait();
     findChildRow("added");
     require(!timing.verifiedPreview, "an outdated preview was promoted");
-    button("Scan")->click();
+    source->lineEdit()->clear();
+    require(!button("Scan")->isEnabled(), "empty scan source enabled Scan");
+    source->setEditText(dir);
+    tap(source->lineEdit(), Qt::Key_Return);
     wait();
     findChildRow("added");
     require(timing.verifiedPreview, "unchanged preview was not promoted");
+    source->setEditText(dir + "/nested");
+    tap(source->lineEdit(), Qt::Key_Return);
+    wait();
+    findChildRow("leaf");
+    require(table->model()->rowCount() == 1, "scan ignored a newly entered folder path");
     require(!window->grab().isNull(), "offscreen rendering failed");
     window->close();
 }
