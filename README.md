@@ -1,10 +1,14 @@
 # <img src="assets/disk-diver.svg" width="40" height="40" alt=""> Disk-Diver
 
-Disk-Diver shows how much space each folder and file uses on a local Windows or Linux drive. Choose a drive or a starting folder and select **Scan**. Each rectangle in the treemap is sized by the space the entry occupies. Click a rectangle to select the same entry in the list, double-click a folder to zoom in, or select **Show in file manager** to open its location.
+Disk-Diver shows how much space each folder and file uses on a local Windows or Linux drive. Choose a drive or enter a folder path and select **Scan**. Larger rectangles represent larger entries. Inside a folder, the treemap shows which subfolders and files account for its size.
 
-![Disk-Diver showing four folders. The Videos folder uses 54 of 110 MiB and occupies the largest rectangle.](docs/desktop.png)
+![Nested treemap and folder table. Videos uses 54 of 110 MiB, including 38 MiB of footage and 16 MiB of exports.](docs/desktop.png)
 
-By default, scans run with your user permissions. Select **Use elevated privileges** to authorize a separate process to read the drive. The main window and file manager keep their normal permissions. Disk-Diver shows which entries it skipped or could not read. You can cancel a scan while it is running.
+- Double-click a folder's title bar to zoom in. Hover over a tile to see its path and size. **Back** returns to the previous view, and **Up** opens the parent folder.
+- The treemap starts with about 80% of the results area. Drag the divider to give the table more room. A narrow table shows names and the selected size measure. A wider table can also show the other measure and the entry type.
+- Right-click a tile or table row to show it in the file manager, copy its full path, rename it, or move it to the **Recycle Bin** on Windows or **Trash** on Linux. Disk-Diver asks for confirmation before moving an entry and rescans after a change.
+
+Scans use your account's permissions by default. Open **Scan options** and select **Use elevated privileges** to authorize a separate process to read protected folders. File actions use the desktop app's permissions. Disk-Diver reports skipped entries and read errors. Select **Cancel** to stop a running scan.
 
 ## Install
 
