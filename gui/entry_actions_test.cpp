@@ -6,8 +6,10 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QContextMenuEvent>
+#include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QFileInfo>
 #include <QInputDialog>
 #include <QLabel>
 #include <QMenu>
@@ -66,14 +68,10 @@ void choose(QWidget *view, QPoint pos, const QString &action, bool enabled = tru
     require(found && correctState, "context action missing or has incorrect enabled state");
 }
 
-void testActions() {
-    QTemporaryDir fixture;
+void testActions(const QTemporaryDir &fixture) {
     const QString root = fixture.filePath("tree");
     const QString parent = root + "/parent";
     require(QDir().mkpath(parent), "fixture directory missing");
-    require(QDir().mkpath(fixture.filePath("share")), "fixture data directory missing");
-    qputenv("XDG_DATA_HOME", QFile::encodeName(fixture.filePath("share")));
-    qputenv("XDG_CACHE_HOME", QFile::encodeName(fixture.filePath("cache")));
     writeFile(parent + "/first");
     writeFile(parent + "/second");
 #ifndef Q_OS_WIN
@@ -200,15 +198,33 @@ void testActions() {
         d->reject();
     });
     wait();
-    require(!QFile::exists(parent + "/new-name") && QFile::exists(fixture.filePath("share/Trash/files/new-name")),
-            "file missing from the isolated Trash");
+    require(!QFile::exists(parent + "/new-name"), "trashed file still exists at its original path");
+    QFile trashed(fixture.filePath("share/Trash/files/new-name"));
+    require(trashed.open(QIODevice::ReadOnly) && trashed.readAll() == "fixture",
+            "expected file contents missing from the isolated Trash");
+    require(QFileInfo(fixture.filePath("share/Trash/info/new-name.trashinfo")).isFile(),
+            "restore metadata missing from the isolated Trash");
 #endif
 }
 }
 
 int main(int argc, char **argv) {
-    QApplication app(argc, argv);
-    try { testActions(); }
-    catch (const std::exception &error) { std::cerr << error.what() << '\n'; return 1; }
+    try {
+        QTemporaryDir fixture;
+        require(fixture.isValid(), "could not create the test directory");
+#ifndef Q_OS_WIN
+        // Qt 6.4 chooses a volume-specific Trash when the source and HOME are on different mounts.
+        require(QDir().mkpath(fixture.filePath("share")), "could not create the test data directory");
+        require(qputenv("HOME", QFile::encodeName(fixture.path()))
+                && qputenv("XDG_DATA_HOME", QFile::encodeName(fixture.filePath("share")))
+                && qputenv("XDG_CACHE_HOME", QFile::encodeName(fixture.filePath("cache"))),
+                "could not isolate the test home");
+#endif
+        QApplication app(argc, argv);
+        testActions(fixture);
+    } catch (const std::exception &error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
     return 0;
 }
