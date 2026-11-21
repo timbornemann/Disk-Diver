@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QObject>
 #include <QString>
 #include <QtGlobal>
 #include <cstdint>
@@ -55,12 +56,13 @@ struct WeightedEntry {
     quint64 size;
 };
 
-class Index {
+class Index : public QObject {
 public:
     bool append(Kind kind, quint64 parent, quint64 logical, quint64 allocated,
                 Identity identity, const char *name, quint32 length);
     void flush();
     void finish();
+    bool finished() const { return finished_; }
     QString name(Id id) const;
     QByteArray relativeName(Id id) const;
     Id findRelative(const QByteArray &path) const;
@@ -81,6 +83,7 @@ private:
     // combined update per run so file counts do not multiply by path depth.
     Id pendingParent_ = none;
     Node pending_;
+    bool finished_ = false;
 };
 
 QString formatSize(quint64 bytes);

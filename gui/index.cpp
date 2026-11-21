@@ -54,11 +54,12 @@ void Index::flush() {
 void Index::finish() {
     flush();
     decltype(owners_){}.swap(owners_);
+    finished_ = true;
 }
 
 bool Index::append(Kind kind, quint64 parent, quint64 logical, quint64 allocated,
                    Identity identity, const char *name, quint32 length) {
-    if (nodes_.size() >= none || quint64(names_.size()) + length > none) return false;
+    if (finished_ || nodes_.size() >= none || quint64(names_.size()) + length > none) return false;
     const bool root = nodes_.empty();
     if (root ? (parent != unknown || kind != Directory)
              : (parent >= nodes_.size() || nodes_[parent].kind != Directory)) return false;

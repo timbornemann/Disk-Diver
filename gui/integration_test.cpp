@@ -1,5 +1,6 @@
 #include "index.h"
 #include "stream.h"
+#include "treemap.h"
 #include "window.h"
 #include <QApplication>
 #include <QComboBox>
@@ -9,6 +10,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPushButton>
+#include <QSet>
 #include <QSplitter>
 #include <QTableView>
 #include <QTemporaryDir>
@@ -134,8 +136,25 @@ void testWindow() {
     QApplication::processEvents();
     require(!table->isColumnHidden(1) && !table->isColumnHidden(2) && !table->isColumnHidden(3),
             "widening the table should reveal all columns");
-    metric->setCurrentIndex(0);
     split->setSizes(initial);
+    auto *map = dynamic_cast<Treemap *>(split->widget(0));
+    require(map, "treemap missing");
+    QSet<diver::Id> visible;
+    for (int x = 8; x < map->width(); x += 16)
+        for (int y = 8; y < map->height(); y += 16) {
+            const auto id = map->entryAt({qreal(x), qreal(y)});
+            if (id != diver::none) visible.insert(id);
+        }
+    require(visible.size() == 3, "expected folder header, nested leaf, and top-level file");
+    int nestedHits = 0;
+    for (auto id : visible) {
+        table->selectRow(findChildRow("flat").row());
+        map->selected(id);
+        if (!table->currentIndex().isValid()) ++nestedHits;
+    }
+    require(nestedHits == 1 && table->model()->rowCount() == 2,
+            "selecting a nested tile should clear the previous table row and keep the current folder");
+    metric->setCurrentIndex(0);
     auto nested = findChildRow("nested");
     require(table->model()->index(nested.row(), 2).data().toString() == "23 B",
             "directory size in UI incorrect");

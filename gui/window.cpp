@@ -351,9 +351,15 @@ private:
         else count_.clear();
     }
     void select(Id id) {
-        const auto it = std::find(model_.ids.begin(), model_.ids.end(), id);
-        if (it == model_.ids.end()) return;
-        table_.selectRow(int(it - model_.ids.begin()));
+        if (id != none && shown_ && (*shown_)[id].parent == folder_) {
+            const auto it = std::find(model_.ids.begin(), model_.ids.end(), id);
+            if (it != model_.ids.end()) table_.selectRow(int(it - model_.ids.begin()));
+        } else {
+            table_.selectionModel()->clear();
+        }
+        selected_ = id;
+        map_.setSelection(id);
+        updateActions();
     }
     void activate(Id id) {
         if ((*shown_)[id].kind == diver::Directory) navigate(id);
@@ -441,10 +447,9 @@ private:
         model_.replace(shown_, std::move(rows));
         table_.setSizeMetric(allocated);
         map_.setItems(shown_, model_.ids, allocated, remainder);
-        if (previous != none && shown_ && previous < shown_->size() && (*shown_)[previous].parent == folder_) {
-            if (model_.ids.empty()) selected_ = previous;
-            else select(previous);
-        }
+        Id ancestor = shown_ && previous < shown_->size() ? (*shown_)[previous].parent : none;
+        while (ancestor != none && ancestor != folder_) ancestor = (*shown_)[ancestor].parent;
+        select(ancestor != none ? previous : none);
         if (timing_ && shown_ && folder_ != none) {
             const auto &node = (*shown_)[folder_];
             if (timing_->firstMs < 0 && (!model_.ids.empty() || (!incoming_ && !node.childCount))) {
